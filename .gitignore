@@ -1,0 +1,7 @@
+.idea/
+
+# Environment variables with secrets
+.env
+
+# Generated MCP config files with secrets
+plugins/**/.mcp.json
