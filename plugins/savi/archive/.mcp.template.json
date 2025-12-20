@@ -39,6 +39,10 @@
     },
     "Notion": {
       "url": "https://mcp.notion.com/mcp"
+    },
+    "docs-langchain": {
+      "type": "http",
+      "url": "https://docs.langchain.com/mcp"
     }
   }
 }
