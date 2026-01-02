@@ -27,11 +27,13 @@ allowed-tools: Bash(gh:*), Bash(just:*), Bash(git:*), Read, Edit, Write, Glob, G
    - Check `event` field for `workflow_run` (indicates this was triggered by another workflow)
    - If chained workflows exist, trace back to find the root trigger
    - Build a chain: [root workflow] → [triggered workflow] → [failing workflow]
+   - **Remember this chain** - you'll need to verify the entire chain passes after fixes
 
 4. **Present chain to user:**
    - If multiple workflows are involved in the chain, show the full chain
    - Use AskUserQuestion to ask which workflow(s) to debug
    - If only one failing workflow, proceed with that one
+   - **Keep track of the original failing workflow** - after fixes, you must verify this same workflow succeeds when re-triggered
 
 ## Phase 2: Analyze Failures
 
@@ -84,21 +86,37 @@ allowed-tools: Bash(gh:*), Bash(just:*), Bash(git:*), Read, Edit, Write, Glob, G
    git push
    ```
 
-4. **Wait for CI and check results:**
-   - Poll for the new run: `gh run list --branch <branch> --limit 5 --json status,conclusion,name,databaseId`
+4. **Wait for the immediate workflow and check results:**
+   - Poll for the new run: `gh run list --branch <branch> --limit 5 --json status,conclusion,name,databaseId,event,workflowName`
    - Wait for `status: "completed"`
    - Check `conclusion`
 
-5. **If still failing:**
+5. **Follow the chain forward (CRITICAL):**
+   - After the immediate workflow completes, **check if it triggers downstream workflows**
+   - Look for new workflow runs that were triggered by the workflow that just completed:
+     - Check for runs with `event: "workflow_run"`
+     - Check for runs with `event: "push"` if a tag/branch was pushed
+     - Match by timestamp (runs created shortly after the workflow completed)
+   - **Wait for all downstream workflows in the chain to complete**
+   - **If any downstream workflow fails, continue the debug loop on that workflow**
+   - Example: You fix main workflow → it succeeds → it pushes a tag → triggered build workflow runs → you must wait for the build workflow too
+
+6. **Chain completion verification:**
+   - If the original `$ARGUMENTS` was a failing workflow URL from the end of a chain, the loop only succeeds when:
+     - The immediate workflow passes, AND
+     - All downstream workflows it triggers also pass
+   - This ensures the entire chain is fixed, not just the first step
+
+7. **If any workflow in the chain is still failing:**
    - Download new logs: `gh run view <new-run-id> --log-failed`
    - Re-analyze with fresh error output
    - Apply next fix
    - Repeat loop
 
-6. **Stop conditions:**
-   - All workflows pass (`conclusion: "success"`) → report success and summary
-   - Cycling through same errors without progress → stop and report blockers
-   - Need user input (secrets, permissions, architectural decisions) → ask via AskUserQuestion
+8. **Stop conditions:**
+   - **Success:** All workflows in the chain pass (`conclusion: "success"`) → report success and summary
+   - **Blocked:** Cycling through same errors without progress → stop and report blockers
+   - **Need input:** Secrets, permissions, architectural decisions → ask via AskUserQuestion
 
 ## Workflow Chain Navigation
 

@@ -1,0 +1,1 @@
+- After updating, you need to bump the version in `.claude-plugin/marketplace.json`
