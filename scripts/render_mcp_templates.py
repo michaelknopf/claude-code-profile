@@ -97,12 +97,12 @@ def get_template_configs(project_root: Path) -> list[TemplateConfig]:
     """Return list of template configurations to process."""
     return [
         TemplateConfig(
-            template_path=project_root / "plugins/main/.mcp.template.json",
-            output_path=project_root / "plugins/main/.mcp.json",
+            template_path=project_root / "plugins/savi/.mcp.template.json",
+            output_path=project_root / "plugins/savi/.mcp.json",
         ),
         TemplateConfig(
-            template_path=project_root / "plugins/main/archive/.mcp.template.json",
-            output_path=project_root / "plugins/main/archive/.mcp.json",
+            template_path=project_root / "plugins/savi/archive/.mcp.template.json",
+            output_path=project_root / "plugins/savi/archive/.mcp.json",
         ),
     ]
 
