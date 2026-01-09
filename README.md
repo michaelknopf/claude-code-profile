@@ -61,70 +61,39 @@ python scripts/render_mcp_templates.py --allow-missing
 ## Included MCP Servers
 
 ### Context7
-HTTP-based MCP server providing advanced context management capabilities.
+HTTP-based MCP server providing up-to-date documentation and code examples for programming libraries and frameworks.
 - **Type**: HTTP
 - **URL**: https://mcp.context7.com/mcp
 
-### Memory
-Persistent memory and context management for Claude Code sessions. Store and recall information across conversations and projects.
-- **Package**: `@modelcontextprotocol/server-memory`
-- **Usage**: Automatically manages conversation context and memory
+## Included Commands
 
-### Fetch
-Web content fetching and data extraction capabilities. Access external APIs, scrape web content, and integrate external data sources.
-- **Package**: `@modelcontextprotocol/server-fetch`
-- **Usage**: Fetch web content and external data
+This plugin provides several powerful commands to enhance your Claude Code workflow:
 
-### Terraform
-Seamless integration with Terraform Registry APIs, enabling advanced automation and interaction capabilities for Infrastructure as Code (IaC) development.
-- **Type**: Docker container
-- **Image**: `hashicorp/terraform-mcp-server`
-- **Usage**: Query Terraform modules, providers, and registry information
+### `/commit`
+Commit changes with a contextual message. Automatically analyzes your changes and creates an appropriate commit message.
 
-### Python SDK
-Official Python SDK with FastMCP for rapid MCP development.
-- **Module**: `python_sdk.server`
-- **Usage**: Python-based MCP server development
+### `/debug`
+Run a command and if it fails, diagnose the issue and make minimal changes until it succeeds (with bounded retries).
 
-## Directory Structure
+### `/ci-debug`
+Debug failing CI workflows and push fixes until they pass. Automatically follows workflow chains after fixes.
 
-```
-.
-├── .claude-plugin/
-│   └── marketplace.json        # Plugin marketplace registration
-├── .example.env                # Example environment variables (tracked)
-├── .env                        # Your secrets (gitignored)
-├── plugins/
-│   └── main/
-│       ├── .mcp.template.json  # MCP config template (tracked)
-│       ├── .mcp.json           # Generated config (gitignored)
-│       ├── archive/
-│       │   ├── .mcp.template.json
-│       │   └── .mcp.json
-│       ├── commands/           # Custom slash commands
-│       ├── agents/             # Custom agents (future)
-│       ├── skills/             # Agent skills (future)
-│       ├── hooks/              # Event hooks
-│       └── plugin.json         # Plugin manifest
-├── scripts/
-│   └── render_mcp_templates.py # Template renderer
-└── README.md                   # This file
-```
+### `/pr-reply`
+Address, reply to, and resolve PR review comments. Streamlines the code review process.
+
+### `/session-doc`
+Generate a structured document summarizing the current session for future reference.
 
 ## Extending This Plugin
 
 ### Adding Custom Commands
-Create `.md` files in the `commands/` directory to add custom slash commands.
+Create `.md` files in the `plugins/savi/commands/` directory to add custom slash commands.
 
 ### Adding Agents
-Create `.md` files in the `agents/` directory to add specialized subagents.
+Create `.md` files in the `plugins/savi/agents/` directory to add specialized subagents.
 
 ### Adding Skills
-Create skill directories with `SKILL.md` files in the `skills/` directory.
+Create skill directories with `SKILL.md` files in the `plugins/savi/skills/` directory.
 
 ### Adding Hooks
-Add `hooks.json` configuration files in the `hooks/` directory to respond to Claude Code events.
-
-## License
-
-MIT
+Add `hooks.json` configuration files in the `plugins/savi/hooks/` directory to respond to Claude Code events.
