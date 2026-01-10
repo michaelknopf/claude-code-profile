@@ -10,16 +10,19 @@ allowed-tools: Bash(just:*), Bash(npm:*), Bash(pnpm:*), Bash(node:*), Bash(pip:*
 
 ## Policy
 - Treat `$ARGUMENTS` as the exact shell command to execute.
-- If it **fails**, then analyze stderr/exit code, then iterate. Do this in a loop.
+- If it **fails**, delegate the fix loop to the `fix-loop` agent
+- The agent will analyze, fix, and retry until success or blocked
 - Freely make small edits, but present a plan and ask permission before making a larger change.
-- Keep a running log of each attempt (command, exit status, key changes).
-- If you are continuously cycling through the same errors without making progress, stop and report.
 - On success: summarize fixes and follow-ups. On failure: summarize highest-leverage next steps.
 
 ## Execution steps
 1) Run the command with the Bash tool exactly as provided: `$ARGUMENTS`
 2) If non-zero exit:
-    - Parse errors and identify likely root cause.
-    - Apply minimal edits (tests/code/config) with clear diffs.
-    - Rerun the command.
-3) If you begin continuously repeating or cycling through the same errors without making progress, stop and report.
+    - Spawn the `fix-loop` agent with the command and initial error output
+    - The agent will:
+      - Parse errors and identify likely root cause
+      - Apply minimal edits (tests/code/config)
+      - Rerun the command
+      - Track attempts and detect if cycling through same errors
+      - Return a concise summary when done (success or blocked)
+3) Report the agent's summary to the user

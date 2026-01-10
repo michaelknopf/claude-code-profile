@@ -73,11 +73,15 @@ allowed-tools: Bash(gh:*), Bash(just:*), Bash(git:*), Read, Edit, Write, Glob, G
 
 ## Phase 4: Fix and Push Loop
 
-1. **Apply minimal fix** based on diagnosis
+**Delegate to fix-loop agent** to handle the iterative fix-verify-push cycle.
+
+Spawn the `fix-loop` agent with instructions to:
+
+1. **Apply minimal fix** based on the diagnosis from Phase 2
    - Don't refactor or improve beyond fixing the immediate issue
    - Keep changes targeted and reversible
 
-2. **Run local validation** (see Phase 3)
+2. **Run local validation** (see Phase 3) before pushing
 
 3. **Commit and push:**
    ```bash
@@ -86,7 +90,7 @@ allowed-tools: Bash(gh:*), Bash(just:*), Bash(git:*), Read, Edit, Write, Glob, G
    git push
    ```
 
-4. **Wait for the immediate workflow and check results:**
+4. **Wait for workflow completion and check results:**
    - Poll for the new run: `gh run list --branch <branch> --limit 5 --json status,conclusion,name,databaseId,event,workflowName`
    - Wait for `status: "completed"`
    - Check `conclusion`
@@ -114,9 +118,11 @@ allowed-tools: Bash(gh:*), Bash(just:*), Bash(git:*), Read, Edit, Write, Glob, G
    - Repeat loop
 
 8. **Stop conditions:**
-   - **Success:** All workflows in the chain pass (`conclusion: "success"`) → report success and summary
-   - **Blocked:** Cycling through same errors without progress → stop and report blockers
-   - **Need input:** Secrets, permissions, architectural decisions → ask via AskUserQuestion
+   - **Success:** All workflows in the chain pass (`conclusion: "success"`) → return summary
+   - **Blocked:** Cycling through same errors without progress → return blockers
+   - **Need input:** Secrets, permissions, architectural decisions → return what's needed
+
+**Expected agent return**: Concise summary of fixes applied and final status, without verbose logs.
 
 ## Workflow Chain Navigation
 
