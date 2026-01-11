@@ -1,6 +1,7 @@
 ---
 description: Explores codebase for refactoring opportunities based on design principles
 capabilities: ["pattern-search", "principle-checking", "codebase-exploration", "code-smell-detection"]
+model: sonnet
 ---
 
 # Refactor Scout

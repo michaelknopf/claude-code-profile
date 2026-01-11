@@ -9,7 +9,7 @@
       "name": "savi",
       "source": "./plugins/savi",
       "description": "Assortment of tools",
-      "version": "1.9.0",
+      "version": "1.9.2",
       "author": {
         "name": "Savi"
       }
