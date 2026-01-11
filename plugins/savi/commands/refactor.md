@@ -1,7 +1,7 @@
 ---
 description: Refactor code based on design principles, with codebase-wide discovery
 argument-hint: <file>[:<lines>] [description]
-allowed-tools: Read, Edit, Write, Glob, Grep, Bash(python:*), Bash(mypy:*), Bash(ruff:*), Bash(pyright:*)
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash(uv:*), Bash(just:*)
 ---
 
 # /refactor — Principled Refactoring
@@ -76,9 +76,12 @@ For each file in the approved scope:
    - Update imports and references as needed
 
 3. **Verify** (if tooling is available):
-   - Run type checker: `mypy <file>` or `pyright <file>`
-   - Run linter: `ruff check <file>`
-   - Only proceed if checks pass
+   - Run `just typecheck`
+   - Run `just fmt`
+   - Run `just lint`
+   - Run `just test`
+   - Finally, run `just check` (only after everything else passes)
+   - Only proceed if all checks pass
 
 4. **Track the change** for the summary
 
