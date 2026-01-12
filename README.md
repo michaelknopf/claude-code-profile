@@ -67,22 +67,53 @@ HTTP-based MCP server providing up-to-date documentation and code examples for p
 
 ## Included Commands
 
-This plugin provides several powerful commands to enhance your Claude Code workflow:
+This plugin provides several powerful commands to enhance your Claude Code workflow.
 
-### `/commit`
-Commit changes with a contextual message. Automatically analyzes your changes and creates an appropriate commit message.
+### Command Categories
 
-### `/debug`
-Run a command and if it fails, diagnose the issue and make minimal changes until it succeeds (with bounded retries).
+#### Analysis & Planning Commands (Read-Only)
 
-### `/ci-debug`
+These commands **do not make code changes**. They analyze your codebase and produce planning documents.
+
+##### `/refactor-audit`
+Scan codebase for design principle violations and generate prioritized refactoring backlog.
+- **Output**: `docs/refactor-audit-YYYY-MM-DD.md` (+ conversation display)
+- **Follow-up**: Use `/refactor` to apply recommended fixes
+- **Example**: `/refactor-audit src/`
+
+##### `/coverage-audit`
+Analyze test coverage gaps and create prioritized test improvement plan.
+- **Output**: `docs/coverage-audit-YYYY-MM-DD.md` (+ conversation display)
+- **Follow-up**: Implement recommended test suites based on designs
+- **Example**: `/coverage-audit coverage.json --top=5`
+
+#### Implementation Commands
+
+These commands **make code changes** or modify project state.
+
+##### `/refactor`
+Apply design principle-based refactoring to code (uses `/refactor-audit` findings).
+
+##### `/commit`
+Create contextual git commits. Automatically analyzes your changes and creates an appropriate commit message.
+
+##### `/ci-debug`
 Debug failing CI workflows and push fixes until they pass. Automatically follows workflow chains after fixes.
 
-### `/pr-reply`
-Address, reply to, and resolve PR review comments. Streamlines the code review process.
+##### `/pr-reply`
+Address, reply to, and resolve PR review comments with code changes. Streamlines the code review process.
 
-### `/session-doc`
+##### `/debug`
+Diagnose and fix command failures iteratively. Run a command and if it fails, diagnose the issue and make minimal changes until it succeeds (with bounded retries).
+
+#### Documentation Commands
+
+##### `/session-doc`
 Generate a structured document summarizing the current session for future reference.
+
+---
+
+**Pro tip**: Run analysis commands (`/refactor-audit`, `/coverage-audit`) regularly to build improvement backlogs, then execute incrementally with implementation commands.
 
 ## Extending This Plugin
 

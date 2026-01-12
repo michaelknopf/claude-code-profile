@@ -1,12 +1,33 @@
 ---
 description: Audit codebase for design principle violations and generate a report
-argument-hint: [directory] [--output=<file>]
+argument-hint: [directory] [--output=<file>] [--no-save]
 allowed-tools: Read, Glob, Grep
 ---
 
 # /refactor-audit — Design Principle Compliance Audit
 
 **Target:** `$ARGUMENTS`
+
+## ⚠️ What This Command Does
+
+**This is a read-only analysis command.** It will:
+- Scan your codebase for design principle violations (from `~/.claude/CLAUDE.md`)
+- Generate a structured report with prioritized findings
+- Provide actionable recommendations with handoff commands
+- **NOT make any code changes**
+- **NOT refactor or modify files**
+
+**Related commands:**
+- `/refactor-audit` - This command (analysis only)
+- `/refactor` - Implements refactoring changes (use AFTER reviewing this audit)
+
+## Output
+
+**Default behavior**: Saves report to `docs/refactor-audit-YYYY-MM-DD.md` AND displays in conversation.
+
+**Options**:
+- `--output=<file>` - Save to custom location instead
+- `--no-save` - Skip file creation, display in conversation only
 
 ## Overview
 
@@ -142,10 +163,24 @@ Move startup logic to `src/startup.py`, configuration to `src/config.py`, helper
 
 ## Next Steps
 
-1. Copy any "Handoff command" above into a new Claude Code session
-2. The `/refactor` command will find similar violations elsewhere
-3. Approve scope and execute the refactoring
-4. Run this audit again after changes to verify improvements
+**📋 This report is complete. No code changes have been made.**
+
+To implement these recommendations:
+
+1. **Review priorities** - Focus on High priority issues first
+2. **Copy handoff commands** - Each issue includes a ready-to-run `/refactor` command
+3. **Execute incrementally** - Don't try to fix everything at once
+   ```bash
+   # Example: Implement the first refactoring
+   /refactor src/api/handlers.py:42-80 "convert to RequestHandler class"
+   ```
+4. **Verify improvements** - Re-run audit after changes:
+   ```bash
+   /refactor-audit src/
+   ```
+5. **Track progress** - Compare new report with this one to measure improvements
+
+**Need help implementing?** Copy any "Handoff command" above into the chat.
 ```
 
 ### Report Guidelines
@@ -160,12 +195,22 @@ Move startup logic to `src/startup.py`, configuration to `src/config.py`, helper
 
 ## Phase 6: Output
 
-If `--output` flag was provided:
-- Write report to specified file
-- Confirm: "Report written to `<file>`"
+**Default**: Save report to `docs/refactor-audit-{YYYY-MM-DD}.md` AND display in conversation
 
-Otherwise:
-- Display report in conversation
+**Steps**:
+1. Ensure `docs/` directory exists (create if needed)
+2. Generate timestamped filename: `refactor-audit-{YYYY-MM-DD}.md`
+3. Write report to file
+4. Display report in conversation
+5. Show confirmation: "📄 Report saved to `docs/refactor-audit-2026-01-11.md`"
+
+**If `--output=<file>` specified**:
+- Use custom path instead of default
+- Create parent directories if needed
+
+**If `--no-save` specified**:
+- Skip file writing
+- Display report in conversation only
 
 ## Guidelines
 
@@ -179,7 +224,7 @@ Otherwise:
 
 ## Examples
 
-### Example 1: Full codebase audit
+### Example 1: Full codebase audit (saves to docs/refactor-audit-YYYY-MM-DD.md)
 ```
 /refactor-audit
 ```
@@ -189,12 +234,17 @@ Otherwise:
 /refactor-audit src/api/
 ```
 
-### Example 3: Audit with output file
+### Example 3: Custom output location
 ```
-/refactor-audit --output=refactor-backlog.md
+/refactor-audit --output=backlog/refactor-tasks.md
 ```
 
-### Example 4: Audit multiple directories
+### Example 4: Display only (no file)
+```
+/refactor-audit --no-save
+```
+
+### Example 5: Audit multiple directories
 ```
 /refactor-audit src/ tests/
 ```

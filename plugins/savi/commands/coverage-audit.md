@@ -1,12 +1,31 @@
 ---
 description: Analyze coverage gaps and create prioritized test improvement plan
-argument-hint: <coverage.json> [--top=N] [--output=file.md]
-allowed-tools: Read, Write, Glob, Grep
+argument-hint: <coverage.json> [--top=N] [--output=<file>] [--no-save]
+allowed-tools: Read, Glob, Grep
 ---
 
-# /coverage-plan — Test Coverage Planning
+# /coverage-audit — Test Coverage Gap Analysis
 
 **Coverage file:** `$ARGUMENTS`
+
+## ⚠️ What This Command Does
+
+**This is a read-only analysis command.** It will:
+- Analyze test coverage gaps from a coverage.json report
+- Prioritize gaps by complexity and business value
+- Design test suites with purpose, strategy, and mocking approaches
+- **NOT write test code**
+- **NOT modify existing tests**
+- **NOT run test suites**
+
+## Output
+
+**Default behavior**: Saves plan to `docs/coverage-audit-YYYY-MM-DD.md` AND displays in conversation.
+
+**Options**:
+- `--output=<file>` - Save to custom location instead
+- `--no-save` - Skip file creation, display in conversation only
+- `--top=N` - Analyze top N priority gaps (default: 10)
 
 ## Overview
 
@@ -28,7 +47,8 @@ just coverage
 1. **Parse arguments**:
    - Coverage file path (required)
    - `--top=N` flag (optional, default: 10)
-   - `--output=file.md` flag (optional, default: stdout)
+   - `--output=<file>` flag (optional)
+   - `--no-save` flag (optional)
 
 2. **Read the coverage JSON**:
    - Expected format: pytest-cov / coverage.py JSON
@@ -178,37 +198,63 @@ Validates payment processing including authorization, capture, refunds, and erro
 **High Priority:** 2 suites (payment, inventory)
 **Medium Priority:** 3 suites (validators, notifications, webhooks)
 
+**📋 This plan is complete. No tests have been written.**
+
 **Next Steps:**
 1. Review and adjust priorities based on business needs
-2. Implement refactoring suggestions for high-priority modules
-3. Write test suites in priority order
-4. Run coverage again to verify improvement
+2. Implement refactoring suggestions for high-priority modules (if needed for testability)
+3. Write test suites in priority order using the designs above
+4. Generate new coverage report:
+   ```bash
+   just coverage
+   ```
+5. Re-run this audit to verify improvement:
+   ```bash
+   /coverage-audit coverage.json
+   ```
+
+**The test suites above are designs, not implementations.** Use them as blueprints when writing actual test code.
 ```
 
 ## Phase 6: Output
 
-If `--output` flag provided:
-- Write report to specified file
-- Confirm file path
+**Default**: Save plan to `docs/coverage-audit-{YYYY-MM-DD}.md` AND display in conversation
 
-Otherwise:
-- Display report in conversation
+**Steps**:
+1. Ensure `docs/` directory exists (create if needed)
+2. Generate timestamped filename: `coverage-audit-{YYYY-MM-DD}.md`
+3. Write plan to file
+4. Display plan in conversation
+5. Show confirmation: "📄 Plan saved to `docs/coverage-audit-2026-01-11.md`"
+
+**If `--output=<file>` specified**:
+- Use custom path instead of default
+- Create parent directories if needed
+
+**If `--no-save` specified**:
+- Skip file writing
+- Display plan in conversation only
 
 ## Examples
 
-### Basic usage
+### Basic usage (saves to docs/coverage-audit-YYYY-MM-DD.md)
 ```bash
-/coverage-plan coverage.json
+/coverage-audit coverage.json
 ```
 
-### Focus on top 3
+### Focus on top 3 priorities
 ```bash
-/coverage-plan coverage.json --top=3
+/coverage-audit coverage.json --top=3
 ```
 
-### Save to file
+### Custom output location
 ```bash
-/coverage-plan coverage.json --output=test-plan.md
+/coverage-audit coverage.json --output=backlog/test-plan.md
+```
+
+### Display only (no file)
+```bash
+/coverage-audit coverage.json --no-save
 ```
 
 ## Coverage JSON Format Reference
