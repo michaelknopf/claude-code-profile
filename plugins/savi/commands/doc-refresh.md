@@ -82,12 +82,18 @@ Rewrite the documentation to reflect the current state.
 
 ### Critical Guidelines
 
+**Audience:**
+Remember you're writing for someone who has just joined the project and is trying to orient themselves. Help them build the right mental model of how this works.
+
 **✓ DO:**
 - Describe the system as it is today
 - Maintain the same conceptual level and focus as the original
-- Keep the same document structure (sections, organization)
+- Preserve the document structure if it serves the reader well, but reorganize if needed for clarity
 - Preserve the writing style and tone
 - Update any outdated information or examples
+- Link to source files rather than copying code
+- Use examples to illustrate, not to enumerate exhaustively
+- Verify existing links are still valid and update paths if needed
 
 **✗ DO NOT:**
 - Use changelog language ("This used to be X, now it's Y")
@@ -96,6 +102,9 @@ Rewrite the documentation to reflect the current state.
 - Turn the doc into a timeline or history
 - Add implementation details if the original was high-level
 - Change the focus or purpose of the documentation
+- Add directory structure sections
+- Inline exhaustive code lists (link to source instead)
+- Turn the doc into a code reference
 
 ### Example Comparisons
 
@@ -112,6 +121,29 @@ Rewrite the documentation to reflect the current state.
 
 **Good (balanced current state):**
 > The system has four main components: the request handler, data processor, caching layer, and response formatter. The caching layer improves performance by...
+
+### Code Duplication Guidelines
+
+When refreshing documentation, apply these principles to avoid maintenance burden:
+
+**Link to source when:**
+- The doc lists all values of an enum (replace with 2-4 examples + link)
+- The doc shows full class definitions (replace with conceptual explanation + link)
+- The doc includes directory structure (remove entirely, or replace with specific path mentions)
+- Any exhaustive list that will change over time
+
+**Acceptable to include when:**
+- Explaining a concept that requires seeing the structure (but add disclaimer that it may evolve)
+- Showing a stable interface/contract that's central to understanding
+- The code snippet is unlikely to change frequently and helps illustrate a key concept
+
+**Examples:**
+
+Bad (exhaustive list):
+> Entity types: PHONE_NUMBER, EMAIL, URL, DOMAIN, IP_ADDRESS, CRYPTO_ADDRESS, CRYPTO_PAYMENT_URI, LIGHTNING_INVOICE, PAYMENT_HANDLE, BANK_COORDINATE_IBAN, BANK_COORDINATE_SWIFT...
+
+Good (examples + link):
+> The system recognizes 22 entity types including PHONE_NUMBER, EMAIL, URL, and CRYPTO_ADDRESS. See [`src/models/entities.py`](../src/models/entities.py) for the complete list.
 
 ## Phase 5: Update Metadata & Save
 

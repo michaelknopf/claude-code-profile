@@ -30,12 +30,14 @@ Examples:
 - An API reference
 - A function/class index
 - A code walkthrough
+- A duplicate of information that lives in the code itself (enum lists, directory structures, class definitions)
 
 **This IS:**
 - A conceptual explanation of purpose and motivation
 - High-level architectural overview
 - Explanation of key abstractions and how they fit together
 - Design decisions and their rationale
+- Links to relevant source files for implementation details
 
 ## Phase 1: Parse Arguments
 
@@ -94,28 +96,30 @@ Choose a descriptive filename that reflects the content:
 
 ## Phase 5: Write Document
 
-Generate documentation with this structure (adapt sections as needed):
+### Structure and Organization
+
+**Think carefully about structure.** Don't force a rigid template. Instead, consider:
+- What mental model would most help someone understand this?
+- What's the natural progression from "I know nothing" to "I understand how this works"?
+- What sections would make this most scannable and navigable?
+
+**Common patterns** (use what fits, skip what doesn't):
+- **Purpose/Overview**: Why this exists, what problem it solves
+- **Key Concepts**: Core abstractions and mental models
+- **Architecture/How It Works**: How pieces fit together
+- **Design Decisions**: Important choices and trade-offs
+- **Examples/Illustrations**: Concrete scenarios that clarify abstract concepts
+
+Let the content guide the structure. A data pipeline might benefit from a "Data Flow" section. A state machine might need "State Transitions." An integration layer might need "Contracts and Boundaries."
+
+### Document Format
 
 ```markdown
 # [Module/Component Name]
 
-## Purpose
+> **Note:** This document provides conceptual explanations with illustrative code examples. For current implementation details, refer to the linked source files. Examples may evolve over time.
 
-Why this exists. What problem does it solve? What need does it address?
-
-## Concepts
-
-Key abstractions and mental models. What are the main ideas that someone needs to understand to grasp this system?
-
-## Architecture
-
-How components fit together at a high level. What are the major pieces and how do they interact?
-
-(Optionally include a simple diagram or architectural sketch if helpful)
-
-## Design Decisions
-
-Important choices made and why. What alternatives were considered? What trade-offs were accepted?
+[Your thoughtfully structured content here]
 
 ---
 
@@ -132,11 +136,36 @@ Important choices made and why. What alternatives were considered? What trade-of
 
 ### Writing Guidelines
 
+**Audience:**
+Write for someone who has just joined the project and is trying to orient themselves. They need to understand where this fits, why it exists, and how it works conceptually before diving into the code. Help them build the right mental model.
+
+**Content:**
 - **Focus on "why" over "what"**: Explain purpose and rationale, not implementation details
 - **Minimal code snippets**: Only include code if it helps explain a concept, not as examples of usage
 - **High-level**: Stay at the conceptual/architectural level, avoid line-by-line explanations
 - **Self-sufficient**: Document should be understandable without reading the code
 - **Avoid instruction**: This is not a "how to use" guide
+
+### Code Duplication Guidelines
+
+**Link to code, don't copy it:**
+- Instead of inlining full enum lists, class definitions, or config structures, provide a few illustrative examples and link to the source file
+- Example: "The system recognizes 22 entity types including PHONE_NUMBER, EMAIL, and CRYPTO_ADDRESS. See `src/models/entities.py` for the complete list."
+
+**Examples, not exhaustive lists:**
+- When showing examples (enum values, entity types, etc.), show 2-4 illustrative ones
+- Always note that examples may evolve and link to source for the current full list
+- Example: "Lure types include URGENCY, FINANCIAL_GAIN, and THREAT. See `src/models/behavioral.py` for all types."
+
+**Never include directory structures:**
+- Directory tree listings are maintenance nightmares and duplicate what's visible in the file tree
+- If you need to reference file locations, mention specific paths in text or link directly
+
+**When code snippets ARE appropriate:**
+- Explaining a concept that requires seeing the structure (e.g., how state flows through a system)
+- Showing a stable interface/contract that's central to understanding
+- The code is unlikely to change frequently
+- Always include a disclaimer that examples are illustrative
 
 ## Phase 6: Save
 
