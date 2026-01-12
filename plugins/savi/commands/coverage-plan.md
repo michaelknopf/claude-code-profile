@@ -92,7 +92,7 @@ How many should I analyze in depth?
 
 ## Phase 4: Deep Analysis (Parallel Sub-Agents)
 
-For each approved coverage gap, spawn a `test-suite-planner` agent **in parallel**.
+For each approved coverage gap, spawn a `test-suite-planner` agent **in parallel** with `model: opus`.
 
 Pass to each agent:
 - File path and uncovered line ranges
@@ -102,7 +102,7 @@ Pass to each agent:
 
 Agents will analyze and return structured test suite designs.
 
-**Important**: Launch all agents in parallel in a single message using multiple Task tool calls. This maximizes efficiency.
+**Important**: Launch all agents in parallel in a single message using multiple Task tool calls with `model: "opus"`. This maximizes efficiency and ensures high-quality test suite designs.
 
 ## Phase 5: Compile Report
 

@@ -1,6 +1,7 @@
 ---
 description: Designs comprehensive test suites for uncovered code based on complexity and business value
 capabilities: ["test-design", "mocking-strategy", "testability-analysis", "edge-case-identification"]
+model: opus
 ---
 
 # Test Suite Planner
