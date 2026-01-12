@@ -23,7 +23,7 @@ allowed-tools: Read, Glob, Grep
 
 ## Output
 
-**Default behavior**: Saves report to `docs/refactor-audit-YYYY-MM-DD.md` AND displays in conversation.
+**Default behavior**: Saves report to `docs/notes/refactor-audit-YYYY-MM-DD.md` AND displays in conversation.
 
 **Options**:
 - `--output=<file>` - Save to custom location instead
@@ -195,14 +195,14 @@ To implement these recommendations:
 
 ## Phase 6: Output
 
-**Default**: Save report to `docs/refactor-audit-{YYYY-MM-DD}.md` AND display in conversation
+**Default**: Save report to `docs/notes/refactor-audit-{YYYY-MM-DD}.md` AND display in conversation
 
 **Steps**:
-1. Ensure `docs/` directory exists (create if needed)
+1. Ensure `docs/notes/` directory exists (create if needed)
 2. Generate timestamped filename: `refactor-audit-{YYYY-MM-DD}.md`
 3. Write report to file
 4. Display report in conversation
-5. Show confirmation: "📄 Report saved to `docs/refactor-audit-2026-01-11.md`"
+5. Show confirmation: "📄 Report saved to `docs/notes/refactor-audit-2026-01-11.md`"
 
 **If `--output=<file>` specified**:
 - Use custom path instead of default
@@ -224,7 +224,7 @@ To implement these recommendations:
 
 ## Examples
 
-### Example 1: Full codebase audit (saves to docs/refactor-audit-YYYY-MM-DD.md)
+### Example 1: Full codebase audit (saves to docs/notes/refactor-audit-YYYY-MM-DD.md)
 ```
 /refactor-audit
 ```
