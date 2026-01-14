@@ -23,6 +23,17 @@ Examples:
 /doc plugins/savi/commands/
 ```
 
+## The Stability Test
+
+Before including ANY detail, ask: **Would this need updating if someone added a new [file/role/config/type/endpoint]?**
+
+- If YES → Don't include it. Stay conceptual, or if specifics are truly needed, link to source rather than inlining.
+- If NO → It's likely a stable concept worth documenting.
+
+**Concepts are stable. Implementations change daily.**
+
+A section listing "Available IAM Roles" will break when someone adds a role. A section explaining "How IAM policies are structured and why" remains valid regardless of which specific roles exist.
+
 ## What This Command Creates
 
 **This is NOT:**
@@ -31,6 +42,8 @@ Examples:
 - A function/class index
 - A code walkthrough
 - A duplicate of information that lives in the code itself (enum lists, directory structures, class definitions)
+- **A catalog of what currently exists** (all roles, all files, all configs)
+- **Content that enumerates instances** (listing each policy type, each endpoint, each module)
 
 **This IS:**
 - A conceptual explanation of purpose and motivation
@@ -69,6 +82,26 @@ Questions before I write the documentation:
 ```
 
 Use `AskUserQuestion` tool to gather responses.
+
+## Phase 3.5: Plan Review (Internal Critique)
+
+Before writing, critically evaluate your documentation plan.
+
+**Switch to Critical Reviewer persona.** Your job is to interrogate the plan and catch violations of the stability principles. For each planned section, ask:
+
+1. **Stability Test**: Would this section need updating if someone added a new file/role/config/type? If yes, flag it.
+2. **Concept vs. Catalog**: Is this section explaining *how something works* or *listing what exists*? Catalogs fail review.
+3. **Maintenance Burden**: Will this section become stale with routine code changes? If yes, flag it.
+
+**Review checklist:**
+- [ ] No sections that enumerate "all X" (all roles, all files, all configs)
+- [ ] No headers like "Available Types", "Configuration Parameters", "Supported Options"
+- [ ] Every section passes the stability test
+- [ ] If specifics are needed, they link to source rather than being inlined (but links are optional - prefer staying conceptual)
+
+**If any section fails review:** Rewrite the plan at a higher conceptual level before proceeding. Do NOT proceed to writing until all sections pass.
+
+**Resume Doc Planner persona** with the revised plan.
 
 ## Phase 4: Determine Output Location
 
@@ -146,16 +179,23 @@ Write for someone who has just joined the project and is trying to orient themse
 - **Self-sufficient**: Document should be understandable without reading the code
 - **Avoid instruction**: This is not a "how to use" guide
 
+**✗ DO NOT:**
+- Create sections that list "all X" (all files, all types, all configs, all roles)
+- Write content requiring updates when someone adds a new instance of something
+- Document *what exists* instead of *why it exists and how it works*
+- Use headers like "Available Types", "Supported Options", "Configuration Parameters"
+
 ### Code Duplication Guidelines
 
-**Link to code, don't copy it:**
-- Instead of inlining full enum lists, class definitions, or config structures, provide a few illustrative examples and link to the source file
-- Example: "The system recognizes 22 entity types including PHONE_NUMBER, EMAIL, and CRYPTO_ADDRESS. See `src/models/entities.py` for the complete list."
+**Don't inline code/lists that will become stale:**
+- Never inline full enum lists, class definitions, or config structures
+- If you must reference specifics, link to source rather than inlining (but prefer staying conceptual)
+- Example: "The system recognizes various entity types including PHONE_NUMBER, EMAIL, and CRYPTO_ADDRESS. See `src/models/entities.py` for the complete list." (only if the specifics add value)
 
 **Examples, not exhaustive lists:**
-- When showing examples (enum values, entity types, etc.), show 2-4 illustrative ones
-- Always note that examples may evolve and link to source for the current full list
-- Example: "Lure types include URGENCY, FINANCIAL_GAIN, and THREAT. See `src/models/behavioral.py` for all types."
+- When showing examples (enum values, entity types, etc.), show 2-4 illustrative ones at most
+- Always note that examples may evolve
+- Best: Stay conceptual and don't enumerate at all
 
 **Never include directory structures:**
 - Directory tree listings are maintenance nightmares and duplicate what's visible in the file tree
@@ -166,6 +206,49 @@ Write for someone who has just joined the project and is trying to orient themse
 - Showing a stable interface/contract that's central to understanding
 - The code is unlikely to change frequently
 - Always include a disclaimer that examples are illustrative
+
+### Avoiding Reference-Style Documentation
+
+**Bad - Enumeration disguised as documentation:**
+> ## Available Policy Types
+> The module supports the following IAM policies:
+> - `admin-access`: Full administrative access
+> - `read-only`: Read-only access to resources
+> - `deployment`: CI/CD deployment permissions
+> [... 10 more items ...]
+
+**Good - Conceptual explanation:**
+> ## Policy Architecture
+> The module uses a policy-per-role pattern where each IAM role has a dedicated policy file. Policies are structured around the principle of least privilege, granting only the permissions required for each role's specific function. See `policies/` for the current policy definitions.
+
+---
+
+**Bad - Configuration as reference:**
+> ## Configuration
+> The module accepts these inputs:
+> - `environment`: The deployment environment (dev/staging/prod)
+> - `region`: AWS region
+> - `enable_logging`: Whether to enable CloudWatch logging
+> [... 15 more items ...]
+
+**Good - Configuration concepts:**
+> ## Configuration Model
+> The module is configured through a single YAML file that defines the environment, regional settings, and feature flags. Required settings are validated at plan time. See `variables.tf` for the full input specification.
+
+## Phase 5.5: Final Review (Document Quality)
+
+Before saving, switch to **Document Reviewer** persona. Review the complete document holistically for usefulness and organization:
+
+**Usefulness check:**
+- Is this document useful for the intended audience?
+- Does each section add conceptual value? If a section isn't pulling its weight, either omit it or move it to an appendix if it's borderline/feels out of place.
+
+**Organization check:**
+- Does information flow logically? Each section should build on concepts established in earlier sections.
+- Is any section confusing until you've read a later section? That's a sign of poor organization - reorder so foundational concepts come first.
+- Would a reader need to jump around to understand the document, or can they read top-to-bottom?
+
+**If the document fails these checks:** Reorganize, trim, or add an appendix as needed before saving.
 
 ## Phase 6: Save
 

@@ -1,7 +1,7 @@
 ---
 description: Update existing conceptual documentation to reflect current state
 argument-hint: <doc-file>
-allowed-tools: Read, Glob, Grep, Write
+allowed-tools: Read, Glob, Grep, Write, AskUserQuestion
 ---
 
 # /doc-refresh — Refresh Conceptual Documentation
@@ -20,6 +20,17 @@ Examples:
 /doc-refresh src/parser/README.md
 ```
 
+## The Stability Test
+
+Before including ANY detail, ask: **Would this need updating if someone added a new [file/role/config/type/endpoint]?**
+
+- If YES → Don't include it. Stay conceptual, or if specifics are truly needed, link to source rather than inlining.
+- If NO → It's likely a stable concept worth documenting.
+
+**Concepts are stable. Implementations change daily.**
+
+A section listing "Available IAM Roles" will break when someone adds a role. A section explaining "How IAM policies are structured and why" remains valid regardless of which specific roles exist.
+
 ## What This Command Does
 
 Re-reads the source code that a documentation file describes, then updates the documentation to reflect the current state.
@@ -27,8 +38,8 @@ Re-reads the source code that a documentation file describes, then updates the d
 **Key principles:**
 - **Snapshot, not changelog**: Write as if documenting fresh, never say "changed from X to Y"
 - **No recency bias**: Don't overweight recent changes over the overall system
-- **Preserve spirit**: Maintain the conceptual focus and style of the original
-- **Same structure**: Keep the original document organization
+- **Improve violations**: If the original doc has sections that violate stability principles, propose fixes (with user consent)
+- **Preserve what works**: Keep structure/style for sections that ARE conceptual and stable
 
 ## Phase 1: Read Existing Documentation
 
@@ -76,9 +87,56 @@ Understand:
 - New components or concepts that emerged
 - Deprecated or removed elements
 
+## Phase 3.5: Violation Detection
+
+Analyze the existing document for sections that violate stability principles.
+
+**For each section, check:**
+1. Does it enumerate "all X" (all roles, all files, all configs)?
+2. Does it have headers like "Available Types", "Configuration Parameters", "Supported Options"?
+3. Would it need updating if someone added new code?
+4. Is it reference material disguised as documentation?
+
+**If violations are found:**
+List each problematic section and propose how to fix it (rewrite at conceptual level, remove, or move to appendix). Then use `AskUserQuestion` to get user consent before proceeding.
+
+**Template:**
+```
+I found sections in the existing doc that violate stability principles:
+
+1. **"Available Policy Types"** (lines 45-67) - Lists all IAM roles
+   → Proposed fix: Rewrite as "Policy Architecture" explaining the policy-per-role pattern
+
+2. **"Configuration"** (lines 70-95) - Lists all config options
+   → Proposed fix: Rewrite as "Configuration Model" explaining the structure conceptually
+
+Should I proceed with these improvements?
+```
+
+**If no violations:** Proceed directly to Phase 4.
+
 ## Phase 4: Update Documentation
 
 Rewrite the documentation to reflect the current state.
+
+### Plan Review (Internal Critique)
+
+Before writing, switch to **Critical Reviewer** persona and evaluate your plan for updating the documentation.
+
+For each section you're about to write or update, ask:
+1. **Stability test**: Would this section need updating if someone added a new file/role/config/type?
+2. **Concept vs. catalog**: Am I explaining *how something works* or *listing what exists*?
+3. **Maintenance burden**: Will this section become stale with routine code changes?
+
+**Review checklist:**
+- [ ] No sections that enumerate "all X" (all roles, all files, all configs)
+- [ ] No headers like "Available Types", "Configuration Parameters", "Supported Options"
+- [ ] Every section passes the stability test
+- [ ] If specifics are needed, they link to source rather than being inlined (but links are optional - prefer staying conceptual)
+
+**If a section fails review:** Rewrite the plan at a higher conceptual level. Do NOT proceed to writing until all sections pass.
+
+**Resume writing** only after all sections pass review.
 
 ### Critical Guidelines
 
@@ -91,7 +149,7 @@ Remember you're writing for someone who has just joined the project and is tryin
 - Preserve the document structure if it serves the reader well, but reorganize if needed for clarity
 - Preserve the writing style and tone
 - Update any outdated information or examples
-- Link to source files rather than copying code
+- Don't inline code/lists that will become stale (if specifics are needed, link to source rather than inlining - but prefer staying conceptual)
 - Use examples to illustrate, not to enumerate exhaustively
 - Verify existing links are still valid and update paths if needed
 
@@ -105,6 +163,9 @@ Remember you're writing for someone who has just joined the project and is tryin
 - Add directory structure sections
 - Inline exhaustive code lists (link to source instead)
 - Turn the doc into a code reference
+- Create or expand sections that enumerate current instances (all roles, all files, all configs)
+- Add detail that would need updating when someone adds new code
+- Turn conceptual sections into reference material
 
 ### Example Comparisons
 
@@ -126,16 +187,17 @@ Remember you're writing for someone who has just joined the project and is tryin
 
 When refreshing documentation, apply these principles to avoid maintenance burden:
 
-**Link to source when:**
-- The doc lists all values of an enum (replace with 2-4 examples + link)
-- The doc shows full class definitions (replace with conceptual explanation + link)
-- The doc includes directory structure (remove entirely, or replace with specific path mentions)
-- Any exhaustive list that will change over time
+**Don't inline code/lists that will become stale:**
+- If the doc lists all values of an enum: replace with conceptual explanation, optionally with 2-4 examples (link to source only if specifics add value)
+- If the doc shows full class definitions: replace with conceptual explanation
+- If the doc includes directory structure: remove entirely, or replace with specific path mentions
+- Any exhaustive list that will change over time should be removed or converted to conceptual explanation
 
 **Acceptable to include when:**
 - Explaining a concept that requires seeing the structure (but add disclaimer that it may evolve)
 - Showing a stable interface/contract that's central to understanding
 - The code snippet is unlikely to change frequently and helps illustrate a key concept
+- Remember: links are optional - truly conceptual docs may not need them at all
 
 **Examples:**
 
@@ -144,6 +206,21 @@ Bad (exhaustive list):
 
 Good (examples + link):
 > The system recognizes 22 entity types including PHONE_NUMBER, EMAIL, URL, and CRYPTO_ADDRESS. See [`src/models/entities.py`](../src/models/entities.py) for the complete list.
+
+## Phase 4.5: Final Review (Document Quality)
+
+Before saving, switch to **Document Reviewer** persona. Review the complete document holistically for usefulness and organization:
+
+**Usefulness check:**
+- Is this document useful for the intended audience?
+- Does each section add conceptual value? If a section isn't pulling its weight, either omit it or move it to an appendix if it's borderline/feels out of place.
+
+**Organization check:**
+- Does information flow logically? Each section should build on concepts established in earlier sections.
+- Is any section confusing until you've read a later section? That's a sign of poor organization - reorder so foundational concepts come first.
+- Would a reader need to jump around to understand the document, or can they read top-to-bottom?
+
+**If the document fails these checks:** Reorganize, trim, or add an appendix as needed before saving.
 
 ## Phase 5: Update Metadata & Save
 
