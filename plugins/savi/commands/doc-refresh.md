@@ -87,9 +87,21 @@ Understand:
 - New components or concepts that emerged
 - Deprecated or removed elements
 
-## Phase 3.5: Violation Detection
+## Phase 3.5: Proposed Changes
 
-Analyze the existing document for sections that violate stability principles.
+Based on your exploration, identify what needs to change in the documentation.
+
+### 1. New Content to Add
+
+What important concepts or components did you discover that the doc doesn't cover?
+- New configuration files that affect how the system is used
+- New patterns or workflows that users need to understand
+- Missing "how to" guidance for common tasks
+- Important related files or concepts that provide context
+
+**Ask yourself:** What did I discover during exploration that would help someone understand how to use or work with this code?
+
+### 2. Violations to Fix
 
 **The key test: Is this list derived from code?**
 
@@ -104,33 +116,43 @@ Conceptual lists are fine because they explain stable ideas:
 - Lists that explain HOW something works, not catalog WHAT exists
 
 **For each section with a list, ask:**
-1. Is this list derived from code? (e.g., listing all policies that exist in the codebase)
-2. Would this list grow when someone adds new code?
-3. Or is this a conceptual list that explains how the system works?
+1. Is this list derived from code? (Would it grow when someone adds code?)
+2. Or is this a conceptual list that explains how the system works?
 
 If it's code-derived → violation.
 If it's conceptual → fine.
 
-**If violations are found:**
-You MUST use `AskUserQuestion` to get explicit user consent before proceeding. List each violation with a proposed fix.
+### 3. Outdated Content to Update
+
+What information in the doc is no longer accurate?
+- Renamed files/components
+- Changed behavior or workflows
+- Deprecated approaches
+
+### Present to User
+
+You MUST use `AskUserQuestion` to get explicit user consent before proceeding. Present all proposed changes together:
 
 **Template:**
 ```
-I found sections in the existing doc that violate stability principles:
+Based on my exploration, here are the proposed changes to the documentation:
 
-1. **"Available Policy Types"** (lines 45-67) - Code-derived list of all IAM roles
-   → Proposed fix: Rewrite as "Policy Architecture" explaining the policy-per-role pattern
+**New content to add:**
+- How to configure CDK permissions for a repo (config.yml's cdk_policies section)
+- [other additions...]
 
-2. **"Configuration"** (lines 70-95) - Code-derived list of all config options
-   → Proposed fix: Rewrite as "Configuration Model" explaining the structure conceptually
+**Violations to fix:**
+1. "Available Policy Types" (lines 45-67) → Rewrite as conceptual "Policy Architecture"
+2. "Configuration" (lines 70-95) → Rewrite as "Configuration Model" explaining structure conceptually
+3. [other violations...]
 
-3. **"Policy Files"** (lines 100-130) - Code-derived list of all policy files with descriptions
-   → Proposed fix: Remove or replace with conceptual explanation of policy organization
+**Outdated content to update:**
+- [if any...]
 
-Should I proceed with these improvements?
+Should I proceed with these changes?
 ```
 
-**If no violations:** Proceed directly to Phase 4.
+**If no changes needed:** Proceed directly to Phase 4.
 
 ## Phase 4: Update Documentation
 
