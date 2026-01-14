@@ -91,24 +91,41 @@ Understand:
 
 Analyze the existing document for sections that violate stability principles.
 
-**For each section, check:**
-1. Does it enumerate "all X" (all roles, all files, all configs)?
-2. Does it have headers like "Available Types", "Configuration Parameters", "Supported Options"?
-3. Would it need updating if someone added new code?
-4. Is it reference material disguised as documentation?
+**The key test: Is this list derived from code?**
+
+Code-derived lists are violations because they naturally grow as the codebase evolves. These include:
+- Lists of all [policies/types/classes/functions/enums/files/parameters/options]
+- Sections like "Available X", "Supported Y", "Configuration", "Policy Files"
+- Any enumeration where adding code would require updating the doc
+
+Conceptual lists are fine because they explain stable ideas:
+- "Three principles of this design"
+- "The data flows through these stages"
+- Lists that explain HOW something works, not catalog WHAT exists
+
+**For each section with a list, ask:**
+1. Is this list derived from code? (e.g., listing all policies that exist in the codebase)
+2. Would this list grow when someone adds new code?
+3. Or is this a conceptual list that explains how the system works?
+
+If it's code-derived → violation.
+If it's conceptual → fine.
 
 **If violations are found:**
-List each problematic section and propose how to fix it (rewrite at conceptual level, remove, or move to appendix). Then use `AskUserQuestion` to get user consent before proceeding.
+You MUST use `AskUserQuestion` to get explicit user consent before proceeding. List each violation with a proposed fix.
 
 **Template:**
 ```
 I found sections in the existing doc that violate stability principles:
 
-1. **"Available Policy Types"** (lines 45-67) - Lists all IAM roles
+1. **"Available Policy Types"** (lines 45-67) - Code-derived list of all IAM roles
    → Proposed fix: Rewrite as "Policy Architecture" explaining the policy-per-role pattern
 
-2. **"Configuration"** (lines 70-95) - Lists all config options
+2. **"Configuration"** (lines 70-95) - Code-derived list of all config options
    → Proposed fix: Rewrite as "Configuration Model" explaining the structure conceptually
+
+3. **"Policy Files"** (lines 100-130) - Code-derived list of all policy files with descriptions
+   → Proposed fix: Remove or replace with conceptual explanation of policy organization
 
 Should I proceed with these improvements?
 ```

@@ -87,17 +87,26 @@ Use `AskUserQuestion` tool to gather responses.
 
 Before writing, critically evaluate your documentation plan.
 
-**Switch to Critical Reviewer persona.** Your job is to interrogate the plan and catch violations of the stability principles. For each planned section, ask:
+**Switch to Critical Reviewer persona.** Your job is to interrogate the plan and catch violations of the stability principles.
 
-1. **Stability Test**: Would this section need updating if someone added a new file/role/config/type? If yes, flag it.
-2. **Concept vs. Catalog**: Is this section explaining *how something works* or *listing what exists*? Catalogs fail review.
-3. **Maintenance Burden**: Will this section become stale with routine code changes? If yes, flag it.
+**The key test: Is this list derived from code?**
 
-**Review checklist:**
-- [ ] No sections that enumerate "all X" (all roles, all files, all configs)
-- [ ] No headers like "Available Types", "Configuration Parameters", "Supported Options"
-- [ ] Every section passes the stability test
-- [ ] If specifics are needed, they link to source rather than being inlined (but links are optional - prefer staying conceptual)
+Code-derived lists are violations because they naturally grow as the codebase evolves:
+- Lists of all [policies/types/classes/functions/enums/files/parameters/options]
+- Sections like "Available X", "Supported Y", "Configuration", "Policy Files"
+- Any enumeration where adding code would require updating the doc
+
+Conceptual lists are fine because they explain stable ideas:
+- "Three principles of this design"
+- "The data flows through these stages"
+- Lists that explain HOW something works, not catalog WHAT exists
+
+**For each planned section with a list:**
+1. Is this list derived from code? (Would it grow when someone adds code?)
+2. Or is this a conceptual list that explains how the system works?
+
+If it's code-derived → violation. Flag it and rewrite at a higher conceptual level.
+If it's conceptual → fine.
 
 **If any section fails review:** Rewrite the plan at a higher conceptual level before proceeding. Do NOT proceed to writing until all sections pass.
 
@@ -187,13 +196,19 @@ Write for someone who has just joined the project and is trying to orient themse
 
 ### Code Duplication Guidelines
 
-**Don't inline code/lists that will become stale:**
+**The key principle: Avoid code-derived lists**
+
+Code-derived lists (enumerations of what exists in the codebase) will become stale as code changes:
+- Lists of all [policies/types/classes/functions/enums/files/parameters/options]
 - Never inline full enum lists, class definitions, or config structures
 - If you must reference specifics, link to source rather than inlining (but prefer staying conceptual)
-- Example: "The system recognizes various entity types including PHONE_NUMBER, EMAIL, and CRYPTO_ADDRESS. See `src/models/entities.py` for the complete list." (only if the specifics add value)
+
+Conceptual lists (explaining how things work) are fine:
+- "The request flows through these three stages"
+- "Two main approaches to handling errors"
 
 **Examples, not exhaustive lists:**
-- When showing examples (enum values, entity types, etc.), show 2-4 illustrative ones at most
+- When showing examples from code (enum values, entity types, etc.), show 2-4 illustrative ones at most
 - Always note that examples may evolve
 - Best: Stay conceptual and don't enumerate at all
 
