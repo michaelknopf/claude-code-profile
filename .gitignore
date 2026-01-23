@@ -1,4 +1,5 @@
 .idea/
+.DS_Store
 
 # Environment variables with secrets
 .env
