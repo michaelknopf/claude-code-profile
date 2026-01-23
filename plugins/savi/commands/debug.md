@@ -8,23 +8,156 @@ allowed-tools: Bash(just:*), Bash(npm:*), Bash(pnpm:*), Bash(node:*), Bash(pip:*
 
 **Command to run (verbatim):** `$ARGUMENTS`
 
-## Policy
-- Treat `$ARGUMENTS` as the exact shell command to execute.
-- If it **fails**, delegate the fix loop to the `fix-loop` agent
-- The agent orchestrates an autonomous two-model loop:
-  - **Opus diagnoses** errors and plans fixes
-  - **Sonnet implements** the planned fixes
-  - Command is re-run, repeat until success or blocked
-- On success: summarize fixes and follow-ups. On failure: summarize highest-leverage next steps.
+## Your Role
 
-## Execution steps
-1) Run the command with the Bash tool exactly as provided: `$ARGUMENTS`
-2) If non-zero exit:
-    - Spawn the `fix-loop` agent with the command and initial error output
-    - The agent will orchestrate the two-model loop:
-      - Spawn opus fix-diagnostician to analyze errors and plan fixes
-      - Spawn sonnet implementation agent to apply the planned edits
-      - Re-run the command to verify
-      - Track attempts and detect cycling (same errors repeating)
-      - Return a concise summary when done (success or blocked)
-3) Report the agent's summary to the user
+You orchestrate an autonomous Opus→Sonnet loop to diagnose and fix failures until the command succeeds or becomes blocked. Each iteration is visible to the user so they can follow along.
+
+## Execution Steps
+
+### 1. Initial Run
+
+Run the command exactly as provided:
+```bash
+$ARGUMENTS
+```
+
+If exit code is 0 → success, you're done. Otherwise, proceed to the fix loop.
+
+### 2. Fix Loop (max 10 attempts)
+
+For each attempt (1 through 10):
+
+#### A. Diagnose with Opus
+
+Spawn the `fix-diagnostician` agent (opus) with:
+- Target command: `$ARGUMENTS`
+- Error output: Full output from the failed command
+- Attempt number: Current iteration (1-indexed)
+- Attempt history: Summary of previous attempts and what was tried
+
+The agent will return a structured plan with these sections:
+- `### Root Cause`
+- `### Fix Plan`
+- `### Status` — either `CONTINUE` or `BLOCKED: <reason>`
+- `### Blockers` (if any)
+
+**CRITICAL: Output the full diagnosis plan verbatim.** After receiving the Task result, you MUST include the complete plan text in your next response message — this is how the user sees it. Do not summarize, truncate, or skip any part of the plan. Format it as:
+
+```
+---
+## Attempt {N} / 10: Diagnosis
+
+{full opus plan output}
+---
+```
+
+#### B. Check for Blockers
+
+Parse the `### Status` section from the opus plan:
+- If `BLOCKED: <reason>` → stop the loop, report the blocker to the user
+- If `CONTINUE` → proceed to implementation
+
+#### C. Implement Fixes with Sonnet
+
+Spawn a sonnet implementation agent (use `Task` tool with `subagent_type: "general-purpose"`, `model: "sonnet"`) with the full opus plan. The agent should:
+- Read the relevant files
+- Apply the changes described in the `### Fix Plan` section
+- Not run the command (you'll do that next)
+
+#### D. Re-run the Command
+
+Run `$ARGUMENTS` again with Bash.
+
+- If exit code 0 → success! Break out of the loop.
+- If still failing → record this attempt in the history and continue to next iteration
+
+#### E. Track Attempt
+
+Record:
+- Attempt number
+- What was diagnosed (root cause summary)
+- What was changed (brief summary of fixes applied)
+- New error output (if still failing)
+
+If you've reached 10 attempts, stop.
+
+### 3. Report Summary
+
+After the loop completes (success, blocked, or max attempts), report:
+
+**On Success:**
+- Number of attempts needed
+- Summary of all fixes applied across all attempts
+- Any follow-up recommendations (tests to add, refactoring, etc.)
+
+**On Blocked:**
+- Why it's blocked (from opus diagnosis)
+- What needs to happen to unblock
+- Summary of what was tried
+
+**On Max Attempts:**
+- Final error output
+- Summary of all attempts and what was tried
+- Highest-leverage next steps to investigate
+
+## Guidelines
+
+- **Output each opus plan verbatim in your response** — the user can ONLY see the plan if you include the full text in your message. Never summarize, truncate, or omit any section. This is the primary value of this command.
+- **Don't wait for approval** — the loop runs autonomously unless the user interrupts.
+- **Track attempts carefully** — avoid repeating the same failed approach.
+- **Be concise in summaries** — focus on what changed and what matters next.
+- **Stop early if blocked** — don't waste attempts on something that needs external action.
+
+## Example Flow
+
+```
+Running command: npm run build
+
+Command failed with exit code 1.
+
+---
+## Attempt 1 / 10: Diagnosis
+
+### Root Cause
+...opus diagnosis...
+
+### Fix Plan
+1. ...
+2. ...
+
+### Status
+CONTINUE
+---
+
+Implementing fixes...
+
+Running command: npm run build
+
+Command failed with exit code 1.
+
+---
+## Attempt 2 / 10: Diagnosis
+
+### Root Cause
+...opus diagnosis...
+
+### Fix Plan
+1. ...
+
+### Status
+CONTINUE
+---
+
+Implementing fixes...
+
+Running command: npm run build
+
+Success! The command passed on attempt 2.
+
+Summary:
+- Attempt 1: Fixed type error in UserService
+- Attempt 2: Added missing import in AuthMiddleware
+
+Follow-up recommendations:
+- Add unit tests for the error handling path in AuthMiddleware
+```

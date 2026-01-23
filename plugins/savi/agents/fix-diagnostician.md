@@ -14,6 +14,7 @@ You analyze error output and codebase context to determine root causes and plan 
 
 - **Target command**: The command that failed (e.g., `npm run build`, `pytest`)
 - **Error output**: The full output from the failed command
+- **Attempt number**: Current attempt number (1-indexed)
 - **Attempt history**: Previous attempts and what was tried (if any)
 - **Project context**: You have read access to explore the codebase
 
@@ -49,6 +50,12 @@ Each item should specify:
 
 Order the changes logically — dependencies first, consumers after.
 
+### Status
+
+One of:
+- `CONTINUE` — fixes are planned, proceed with implementation
+- `BLOCKED: <reason>` — cannot be fixed with code changes alone
+
 ### Blockers (if any)
 
 If the issue cannot be fixed with code changes alone, explain:
@@ -77,6 +84,10 @@ The build is failing because `UserService.getUser()` at src/services/user.ts:45 
 1. **src/middleware/auth.ts:67-82** — Modify `AuthMiddleware.extractUserId()` to throw `UnauthorizedError` instead of returning `null` when token is missing
 2. **src/controllers/user.ts:23-30** — Add try-catch around `UserService.getUser()` call to handle `UnauthorizedError` and return 401 response
 3. **src/services/user.ts:45** — Add validation that throws clear error if `userId` is null/undefined (defensive programming)
+
+### Status
+
+CONTINUE
 
 ### Blockers
 

@@ -73,67 +73,132 @@ allowed-tools: Bash(gh:*), Bash(just:*), Bash(git:*), Read, Edit, Write, Glob, G
 
 ## Phase 4: Fix and Push Loop
 
-**Delegate to fix-loop agent** to handle the iterative fix-verify-push cycle.
+You orchestrate an autonomous Opus→Sonnet loop to diagnose and fix CI failures until all workflows pass. Each iteration is visible to the user so they can follow along.
 
-The fix-loop agent orchestrates an autonomous **two-model loop**:
-- **Opus diagnoses** the CI failure and plans fixes
-- **Sonnet implements** the planned fixes
-- Changes are committed, pushed, and verified in CI
-- Repeats until success or blocked
+### Fix Loop (max 10 attempts)
 
-Spawn the `fix-loop` agent with instructions to:
+For each attempt (1 through 10):
 
-1. **Run the two-model loop:**
-   - **Opus (fix-diagnostician)** analyzes the CI logs and produces a structured fix plan
-   - **Sonnet (implementation agent)** applies the planned edits with minimal changes
-   - The orchestrator (fix-loop) handles verification steps between iterations
+#### A. Diagnose with Opus
 
-2. **Run local validation** before pushing (when possible):
-   - Use `just` recipes to test fixes locally (see Phase 3)
-   - Only skip local validation if the failure is environment-specific
+Spawn the `fix-diagnostician` agent (opus) with:
+- Target command: `gh run view <run-id> --log` (the workflow that failed)
+- Error output: Full CI logs from the failed workflow
+- Attempt number: Current iteration (1-indexed)
+- Attempt history: Summary of previous attempts and what was tried
 
-3. **Commit and push changes:**
-   ```bash
-   git add <changed-files>
-   git commit -m "ci: <brief description of fix>"
-   git push
-   ```
+The agent will return a structured plan with these sections:
+- `### Root Cause`
+- `### Fix Plan`
+- `### Status` — either `CONTINUE` or `BLOCKED: <reason>`
+- `### Blockers` (if any)
 
-4. **Poll for workflow completion:**
-   - Wait for the new run: `gh run list --branch <branch> --limit 5 --json status,conclusion,name,databaseId,event,workflowName`
-   - Wait for `status: "completed"`
-   - Check `conclusion`
+**CRITICAL: Output the full diagnosis plan verbatim.** After receiving the Task result, you MUST include the complete plan text in your next response message — this is how the user sees it. Do not summarize, truncate, or skip any part of the plan. Format it as:
 
-5. **Follow the chain forward (CRITICAL):**
-   - After the immediate workflow completes, **check if it triggers downstream workflows**
-   - Look for new workflow runs that were triggered by the workflow that just completed:
-     - Check for runs with `event: "workflow_run"`
-     - Check for runs with `event: "push"` if a tag/branch was pushed
-     - Match by timestamp (runs created shortly after the workflow completed)
-   - **Wait for all downstream workflows in the chain to complete**
-   - **If any downstream workflow fails, continue the debug loop on that workflow**
-   - Example: You fix main workflow → it succeeds → it pushes a tag → triggered build workflow runs → you must wait for the build workflow too
+```
+---
+## Attempt {N} / 10: Diagnosis
 
-6. **Chain completion verification:**
-   - If the original `$ARGUMENTS` was a failing workflow URL from the end of a chain, the loop only succeeds when:
-     - The immediate workflow passes, AND
-     - All downstream workflows it triggers also pass
-   - This ensures the entire chain is fixed, not just the first step
+{full opus plan output}
+---
+```
 
-7. **Pass new error logs to Opus for re-diagnosis:**
-   - If any workflow in the chain is still failing:
-     - Download new logs: `gh run view <new-run-id> --log-failed`
-     - Pass to Opus for fresh analysis
-     - Opus plans next fix
-     - Sonnet applies it
-     - Repeat loop
+#### B. Check for Blockers
 
-8. **Stop conditions:**
-   - **Success:** All workflows in the chain pass (`conclusion: "success"`) → return summary
-   - **Blocked:** Cycling through same errors without progress (Opus will identify blockers)
-   - **Need input:** Secrets, permissions, architectural decisions → return what's needed
+Parse the `### Status` section from the opus plan:
+- If `BLOCKED: <reason>` → stop the loop, report the blocker to the user
+- If `CONTINUE` → proceed to implementation
 
-**Expected agent return**: Concise summary of fixes applied and final status, without verbose logs. The fix-loop orchestrator will manage the opus/sonnet cycles internally.
+#### C. Implement Fixes with Sonnet
+
+Spawn a sonnet implementation agent (use `Task` tool with `subagent_type: "general-purpose"`, `model: "sonnet"`) with the full opus plan. The agent should:
+- Read the relevant files
+- Apply the changes described in the `### Fix Plan` section
+- Not commit or push (you'll do that next)
+
+#### D. Local Validation (when possible)
+
+Before pushing, validate locally if the failure can be reproduced:
+- Use `just` recipes to test fixes locally (see Phase 3)
+- Only skip if the failure is environment-specific (secrets, CI-only setup, etc.)
+- If local validation fails → record this in attempt history and loop back to (A) for re-diagnosis
+
+#### E. Commit and Push
+
+```bash
+git add <changed-files>
+git commit -m "ci: <brief description of fix>"
+git push
+```
+
+#### F. Poll for Workflow Completion
+
+Wait for the new workflow run to complete:
+```bash
+gh run list --branch <branch> --limit 5 --json status,conclusion,name,databaseId,event,workflowName
+```
+
+Wait until `status: "completed"`, then check `conclusion`.
+
+#### G. Follow the Chain Forward (CRITICAL)
+
+After the immediate workflow completes:
+
+1. **Check if it triggers downstream workflows:**
+   - Look for new workflow runs with `event: "workflow_run"`
+   - Look for runs triggered by tags/pushes if this workflow pushed code
+   - Match by timestamp (created shortly after completion)
+
+2. **Wait for all downstream workflows to complete:**
+   - Poll each downstream workflow until `status: "completed"`
+   - Check their `conclusion` fields
+
+3. **Verify the entire chain passes:**
+   - If **any** workflow in the chain fails → treat as failure, continue loop
+   - If **all** workflows succeed → success! Break out of loop.
+
+Example chain:
+- You fix "Release" workflow → it succeeds
+- → It pushes a tag, triggering "Build" workflow
+- → **You must wait for Build workflow too**
+- → If Build fails, loop continues with Build's error logs
+
+#### H. Track Attempt
+
+Record:
+- Attempt number
+- What was diagnosed (root cause summary)
+- What was changed (brief summary of fixes applied)
+- Which workflows ran and their outcomes
+- New error output (if any workflow still failing)
+
+If you've reached 10 attempts, stop.
+
+### Stop Conditions
+
+- **Success:** All workflows in the chain pass (`conclusion: "success"`)
+- **Blocked:** Opus returns `BLOCKED: <reason>` status
+- **Max attempts:** Reached 10 iterations without success
+
+### Report Summary
+
+After the loop completes, report:
+
+**On Success:**
+- Number of attempts needed
+- Summary of all fixes applied across all attempts
+- Which workflows were verified
+- Any follow-up recommendations
+
+**On Blocked:**
+- Why it's blocked (from opus diagnosis)
+- What needs to happen to unblock (secrets, permissions, etc.)
+- Summary of what was tried
+
+**On Max Attempts:**
+- Final error output from last workflow run
+- Summary of all attempts and what was tried
+- Highest-leverage next steps to investigate
 
 ## Workflow Chain Navigation
 
