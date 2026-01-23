@@ -75,23 +75,32 @@ allowed-tools: Bash(gh:*), Bash(just:*), Bash(git:*), Read, Edit, Write, Glob, G
 
 **Delegate to fix-loop agent** to handle the iterative fix-verify-push cycle.
 
+The fix-loop agent orchestrates an autonomous **two-model loop**:
+- **Opus diagnoses** the CI failure and plans fixes
+- **Sonnet implements** the planned fixes
+- Changes are committed, pushed, and verified in CI
+- Repeats until success or blocked
+
 Spawn the `fix-loop` agent with instructions to:
 
-1. **Apply minimal fix** based on the diagnosis from Phase 2
-   - Don't refactor or improve beyond fixing the immediate issue
-   - Keep changes targeted and reversible
+1. **Run the two-model loop:**
+   - **Opus (fix-diagnostician)** analyzes the CI logs and produces a structured fix plan
+   - **Sonnet (implementation agent)** applies the planned edits with minimal changes
+   - The orchestrator (fix-loop) handles verification steps between iterations
 
-2. **Run local validation** (see Phase 3) before pushing
+2. **Run local validation** before pushing (when possible):
+   - Use `just` recipes to test fixes locally (see Phase 3)
+   - Only skip local validation if the failure is environment-specific
 
-3. **Commit and push:**
+3. **Commit and push changes:**
    ```bash
    git add <changed-files>
    git commit -m "ci: <brief description of fix>"
    git push
    ```
 
-4. **Wait for workflow completion and check results:**
-   - Poll for the new run: `gh run list --branch <branch> --limit 5 --json status,conclusion,name,databaseId,event,workflowName`
+4. **Poll for workflow completion:**
+   - Wait for the new run: `gh run list --branch <branch> --limit 5 --json status,conclusion,name,databaseId,event,workflowName`
    - Wait for `status: "completed"`
    - Check `conclusion`
 
@@ -111,18 +120,20 @@ Spawn the `fix-loop` agent with instructions to:
      - All downstream workflows it triggers also pass
    - This ensures the entire chain is fixed, not just the first step
 
-7. **If any workflow in the chain is still failing:**
-   - Download new logs: `gh run view <new-run-id> --log-failed`
-   - Re-analyze with fresh error output
-   - Apply next fix
-   - Repeat loop
+7. **Pass new error logs to Opus for re-diagnosis:**
+   - If any workflow in the chain is still failing:
+     - Download new logs: `gh run view <new-run-id> --log-failed`
+     - Pass to Opus for fresh analysis
+     - Opus plans next fix
+     - Sonnet applies it
+     - Repeat loop
 
 8. **Stop conditions:**
    - **Success:** All workflows in the chain pass (`conclusion: "success"`) → return summary
-   - **Blocked:** Cycling through same errors without progress → return blockers
+   - **Blocked:** Cycling through same errors without progress (Opus will identify blockers)
    - **Need input:** Secrets, permissions, architectural decisions → return what's needed
 
-**Expected agent return**: Concise summary of fixes applied and final status, without verbose logs.
+**Expected agent return**: Concise summary of fixes applied and final status, without verbose logs. The fix-loop orchestrator will manage the opus/sonnet cycles internally.
 
 ## Workflow Chain Navigation
 
