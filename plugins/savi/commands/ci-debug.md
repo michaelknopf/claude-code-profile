@@ -26,6 +26,7 @@ allowed-tools: Bash(gh:*), Bash(just:*), Bash(git:*), Read, Edit, Write, Glob, G
    - Look for runs with `conclusion: "failure"`
    - Check `event` field for `workflow_run` (indicates this was triggered by another workflow)
    - If chained workflows exist, trace back to find the root trigger
+   - Ignore checks about failed test coverage thresholds.
    - Build a chain: [root workflow] → [triggered workflow] → [failing workflow]
    - **Remember this chain** - you'll need to verify the entire chain passes after fixes
 
