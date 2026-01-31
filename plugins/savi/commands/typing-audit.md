@@ -1,7 +1,7 @@
 ---
 description: Audit Python codebase for type safety opportunities (dicts vs typed structures, Any types)
 argument-hint: [directory] [--output=<file>] [--no-save]
-allowed-tools: Read, Glob, Grep
+allowed-tools: Read, Glob, Grep, Bash(bd:*)
 ---
 
 # /typing-audit — Python Type Safety Audit
@@ -66,8 +66,13 @@ Pass to the agent:
 - Type principles to check
 - Instruction to find ALL type safety issues (both dict patterns and Any types)
 - Request categorization by type and severity
+- **Identify dependency relationships between findings**:
+  - For each finding, note which other findings must complete first
+  - Example: Converting a dict to a dataclass must happen before refactoring consumers of that dict
+  - Example: "Update type hint in module X" must complete before "Update callers in module Y"
+  - Consider file dependencies, import relationships, and shared state
 
-The agent will return an inventory of all issues found.
+The agent will return an inventory of all issues found with dependency information.
 
 ## Phase 4: Present Findings
 
@@ -120,6 +125,20 @@ Found N type safety issues across M files.
 | Medium | Dict → TypedDict | 7 |
 | ... | ... | ... |
 
+### Dependency Graph
+
+Visual representation of task dependencies (arrows show blocking relationships):
+
+```
+#1 → #3 → #5
+#2 (independent)
+#4 → #6, #7
+```
+
+**Legend:**
+- `#1 → #3` means "#1 must complete before #3 can start"
+- `(independent)` means the task has no dependencies
+
 ---
 
 ## High Priority
@@ -151,6 +170,10 @@ Create a `UserData` pydantic model or dataclass with typed fields. This provides
 
 **Estimated effort:** Small (single function, straightforward conversion)
 
+**Dependencies:**
+- Blocks: #3 (consumers must be updated after this refactoring)
+- Independent of other refactorings
+
 **Handoff command:**
 ```
 /refactor src/api/handlers.py:42 "convert Dict[str, Any] return to UserData model"
@@ -179,6 +202,9 @@ DEFAULT_CONFIG = {
 Convert to a `Config` dataclass or pydantic model. Consider making it frozen/immutable.
 
 **Estimated effort:** Medium (3 similar dicts to convert, need to update all usage sites)
+
+**Dependencies:**
+- Independent of other refactorings
 
 **Handoff command:**
 ```
@@ -223,9 +249,96 @@ To implement these recommendations:
 - **Actionable suggestions** - specific approach, not vague "improve this"
 - **Explain benefits** - why the typed version is better
 - **Effort estimates** - help user prioritize (Small/Medium/Large)
+- **Dependencies** - list tasks this blocks or is blocked by
 - **Handoff commands** - ready-to-run `/refactor` commands
 
-## Phase 6: Output
+## Phase 6: Beads Integration (if available)
+
+Check if beads is initialized in the current repository:
+
+```bash
+bd info --json 2>/dev/null
+```
+
+If beads is available (command succeeds), integrate findings with beads issue tracker:
+
+### 6.1: Create Epic
+
+Create an epic to track the audit:
+
+```bash
+bd create "Typing Audit: <scope> (<YYYY-MM-DD>)" -t epic -p 2 --json
+```
+
+Extract the epic ID from the JSON response for use in subsequent steps.
+
+### 6.2: Create Subtasks
+
+For each finding in the report, create a subtask:
+
+```bash
+bd create "<short-title>" -t task -p <priority> --parent <epic-id> \
+  -d "**Principle:** <violated principle>
+
+**Location:** <file:lines>
+
+**Description:** <description>
+
+**Command:** /savi:refactor <file:lines> \"<description>\"" --json
+```
+
+**Priority mapping:**
+- High priority findings → `1`
+- Medium priority findings → `2`
+- Low priority findings → `3`
+
+**Short title format:** `<file> - <brief-description>`
+- Example: `handlers.py - Convert Dict to UserData model`
+- Keep titles under 60 characters
+
+Extract task IDs from JSON responses and map them to report issue numbers (e.g., issue #1 → task_id_1).
+
+### 6.3: Set Dependencies
+
+For each finding that has dependencies (from the Dependencies section in the report):
+
+```bash
+bd dep add <prerequisite-task-id> <dependent-task-id> --type blocks
+```
+
+**Important:** Only create blocking dependencies. Related tasks that don't block each other should remain independent.
+
+### 6.4: Sync to Remote
+
+Synchronize the issues to the remote repository:
+
+```bash
+bd sync
+```
+
+### 6.5: Report to User
+
+Display a summary of the beads integration:
+
+```
+✅ Created epic <epic-id> with N subtasks in beads.
+
+To execute these refactorings:
+1. Run `bd ready` to see unblocked tasks
+2. Run `/savi:next --loop` in a new session to process all ready tasks automatically
+3. Or pick individual tasks with `/savi:next` (processes one at a time)
+
+Track progress:
+- `bd stats` - View completion statistics
+- `bd blocked` - See tasks waiting on dependencies
+- `bd show <epic-id>` - View full epic details
+```
+
+### 6.6: Skip if Beads Not Available
+
+If `bd info` fails (beads not initialized), skip this phase silently and proceed to Phase 7. Do not display any error or warning about beads.
+
+## Phase 7: Output
 
 **Default**: Save report to `docs/notes/typing-audit-{YYYY-MM-DD}.md` AND display in conversation
 
