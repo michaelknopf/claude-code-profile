@@ -12,6 +12,19 @@ allowed-tools: Bash(just:*), Bash(npm:*), Bash(pnpm:*), Bash(node:*), Bash(pip:*
 
 You orchestrate an autonomous Opus→Sonnet loop to diagnose and fix failures until the command succeeds or becomes blocked. Each iteration is visible to the user so they can follow along.
 
+## Agent Selection
+
+This command uses different diagnostic agents based on the type of error:
+
+| Error Type | Agent | Why |
+|------------|-------|-----|
+| Type errors (mypy, pyright) | `type-fix-planner` | Applies type safety principles from `plugins/savi/docs/type-safety-principles.md` |
+| All other errors | `fix-diagnostician` | General-purpose debugging |
+
+**Type error detection patterns:**
+- Command contains: `mypy`, `pyright`, `--strict`, `--check`
+- Output contains: `error:` with type-related messages like `Incompatible`, `has no attribute`, `Missing return`, `Argument of type`
+
 ## Execution Steps
 
 ### 1. Initial Run
@@ -27,16 +40,27 @@ If exit code is 0 → success, you're done. Otherwise, proceed to the fix loop.
 
 For each attempt (1 through 10):
 
-#### A. Diagnose with Opus
+#### A. Diagnose (with agent selection)
 
-Spawn the `fix-diagnostician` agent (opus) with:
+**Detect if this is a type error:**
+
+Check the error output for patterns indicating type errors:
+- Command (`$ARGUMENTS`) contains: `mypy`, `pyright`, `--strict`, `--check`
+- Error output contains: `error:` with type-related messages like `Incompatible`, `has no attribute`, `Missing return`, `Argument of type`
+
+**Select the appropriate diagnostician:**
+
+- **Type errors detected** → Spawn `type-fix-planner` agent (opus) - applies type safety principles
+- **Other errors** → Spawn `fix-diagnostician` agent (opus) - general debugging
+
+**Inputs to pass to the selected agent:**
 - Target command: `$ARGUMENTS`
 - Error output: Full output from the failed command
 - Attempt number: Current iteration (1-indexed)
 - Attempt history: Summary of previous attempts and what was tried
 
-The agent will return a structured plan with these sections:
-- `### Root Cause`
+Both agents return a structured plan with these sections:
+- `### Root Cause` (type-fix-planner also includes `### Principles Applied`)
 - `### Fix Plan`
 - `### Status` — either `CONTINUE` or `BLOCKED: <reason>`
 - `### Blockers` (if any)

@@ -52,10 +52,19 @@ Extract from `$ARGUMENTS`:
 
 ## Phase 2: Load Type Principles
 
-Read `~/.claude/CLAUDE.md` (and project-specific `CLAUDE.md` if exists) to understand:
-- Type safety principles to check against
-- Preferred patterns (pydantic models, dataclasses, TypedDicts)
-- Anti-patterns to identify
+Read the type safety principles document to understand patterns to detect:
+
+**Primary source:** `plugins/savi/docs/type-safety-principles.md`
+
+Use Oracle MCP or direct Read to load the document. Extract key principles:
+- Fixed-key data belongs in structured types (not dicts)
+- Stub files are all-or-nothing (prefer wrappers)
+- Isolate type workarounds (DRY for casts/ignores)
+- Use generic types with inline `[T]` syntax (Python 3.12+)
+- Use modern `type` keyword for aliases
+- Minimize and specify type ignores
+
+Also reference `~/.claude/CLAUDE.md` for any project-specific type conventions.
 
 ## Phase 3: Explore Codebase
 

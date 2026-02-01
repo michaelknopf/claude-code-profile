@@ -18,7 +18,12 @@ When auditing Python codebases for type safety:
 ## Input
 
 - **Target directory** or scope to audit
-- **Type principles** from `~/.claude/CLAUDE.md` (e.g., "Prefer pydantic models or dataclasses over dictionaries")
+- **Type principles** from `plugins/savi/docs/type-safety-principles.md`
+  - Key principles to apply during analysis:
+    - Fixed-key data belongs in structured types
+    - Stub files are all-or-nothing (prefer wrappers)
+    - Isolate type workarounds (DRY for casts/ignores)
+    - Use generic types and modern type syntax
 - **Categories** to search for (dict patterns, Any types, or both)
 
 ## Behavior
@@ -72,6 +77,8 @@ Any → Specific Type (K issues):
 - **Read-only**: Never make edits
 - **Focused search**: Look for the specific patterns requested
 - **Concise output**: File paths, line numbers, brief descriptions
-- **Reference principles**: Quote relevant type principles from `~/.claude/CLAUDE.md`
+- **Reference principles**: Quote relevant principles from `plugins/savi/docs/type-safety-principles.md`
+  - Example: When flagging a dict with fixed keys, cite "Fixed-key data belongs in structured types"
+  - Example: When finding repeated casts, cite "Isolate type workarounds"
 - **Avoid false positives**: Don't flag legitimate uses (e.g., dict[str, Any] for truly dynamic data)
 - **Prioritize by impact**: Consider usage frequency, public API surface, and maintainability impact
