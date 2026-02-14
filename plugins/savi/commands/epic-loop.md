@@ -35,11 +35,10 @@ Continue iterating until the epic is complete or all remaining tasks are blocked
 
 ### D. Plan with Opus
 - Spawn Task tool with:
-  - model: "opus"
-  - subagent_type: "general-purpose"
-  - Prompt: Include the full task description and request a structured implementation plan
+  - subagent_type: "task-planner"
+  - Prompt: Include the full task description
 
-- The Opus agent should produce a plan with:
+- The `task-planner` agent produces a structured plan with:
   - **Approach**: High-level strategy
   - **Files to Modify**: Specific file paths
   - **Implementation Steps**: Numbered, actionable steps

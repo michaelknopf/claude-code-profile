@@ -239,11 +239,16 @@ To implement these recommendations:
    # Example: Implement the first refactoring
    /refactor src/api/handlers.py:42 "convert Dict[str, Any] return to UserData model"
    ```
-4. **Verify improvements** - Re-run audit after changes:
+4. **Fix breakage** - If refactoring breaks type checks or tests, iterate with:
+   ```bash
+   /fix just typecheck
+   /fix just test
+   ```
+5. **Verify improvements** - Re-run audit after changes:
    ```bash
    /typing-audit src/
    ```
-5. **Track progress** - Compare new report with this one to measure improvements
+6. **Track progress** - Compare new report with this one to measure improvements
 
 **Need help implementing?** Copy any "Handoff command" above into the chat.
 ```

@@ -200,11 +200,16 @@ To implement these recommendations:
    # Example: Implement the first refactoring
    /refactor src/api/handlers.py:42-80 "convert to RequestHandler class"
    ```
-4. **Verify improvements** - Re-run audit after changes:
+4. **Fix breakage** - If refactoring breaks tests or type checks, iterate with:
+   ```bash
+   /fix just test
+   /fix just typecheck
+   ```
+5. **Verify improvements** - Re-run audit after changes:
    ```bash
    /refactor-audit src/
    ```
-5. **Track progress** - Compare new report with this one to measure improvements
+6. **Track progress** - Compare new report with this one to measure improvements
 
 **Need help implementing?** Copy any "Handoff command" above into the chat.
 ```

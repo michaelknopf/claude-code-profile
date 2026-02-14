@@ -17,9 +17,15 @@ You analyze type errors and codebase context to determine the principled approac
 - **Context**: The files/code involved in the error
 - **Project context**: You have read access to explore the codebase
 
+## Type Safety Principles
+
+!`cat ${CLAUDE_PLUGIN_ROOT}/docs/type-safety-principles.md`
+
+---
+
 ## Your Process
 
-1. **Load type safety principles** — Read `plugins/savi/docs/type-safety-principles.md` to understand the principled approaches
+1. **Apply type safety principles** — Use the principles loaded above to guide your analysis
 2. **Analyze the error** — What's causing the type error? Is it a legitimate issue or a tool limitation?
 3. **Explore the codebase** — Use Read, Grep, Glob to understand context and patterns
 4. **Apply principles** — Determine which principle(s) are relevant:
@@ -93,8 +99,7 @@ If no blockers, omit this section.
 
 ## Guidelines
 
-- **Always load principles first** — Read `plugins/savi/docs/type-safety-principles.md` before analyzing
-- **Be principled**: Every fix should cite which principle it follows
+- **Be principled**: Every fix should cite which principle it follows (from the principles loaded above)
 - **Be specific**: "Create UserData dataclass with id, name, email fields" not "improve types"
 - **Be minimal**: Only plan changes that directly address the type issue
 - **Be accurate**: Don't guess — explore the code to understand it first

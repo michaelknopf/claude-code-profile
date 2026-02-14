@@ -173,6 +173,13 @@ Include:
 Full report saved to: `docs/notes/review-pr-add-auth-2026-01-23.md`
 ```
 
+## Related Commands
+
+After reviewing, use these commands to act on findings:
+- `/pr-reply` — Address and resolve PR review comments with code changes
+- `/ci-fix` — Debug and fix failing CI workflows on this PR
+- `/fix <command>` — Fix specific issues identified in the report (e.g., `/fix just test`)
+
 ## Important Notes
 
 - **No false positives**: Only report issues you're genuinely confident about

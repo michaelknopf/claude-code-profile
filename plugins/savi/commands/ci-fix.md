@@ -1,10 +1,10 @@
 ---
-description: Debug failing CI workflows and push fixes until they pass
+description: Fix failing CI workflows and push fixes until they pass
 argument-hint: "[PR# | branch | run-id]"
 allowed-tools: Bash(gh:*), Bash(just:*), Bash(git:*), Read, Edit, Write, Glob, Grep
 ---
 
-# /ci-debug — Debug and fix CI failures
+# /ci-fix — Debug and fix CI failures
 
 **Target:** $ARGUMENTS (defaults to current branch's PR if empty)
 
@@ -80,16 +80,29 @@ You orchestrate an autonomous Opus→Sonnet loop to diagnose and fix CI failures
 
 For each attempt (1 through 10):
 
-#### A. Diagnose with Opus
+#### A. Diagnose with Opus (with agent selection)
 
-Spawn the `fix-diagnostician` agent (opus) with:
+**Detect if this is a type error:**
+
+Check the CI error output for patterns indicating type errors:
+- Workflow name or step contains: `mypy`, `pyright`, `typecheck`, `type-check`
+- Error output contains: `error:` with type-related messages like `Incompatible`, `has no attribute`, `Missing return`, `Argument of type`
+
+**Select the appropriate diagnostician:**
+
+| Error Type | Agent | Why |
+|------------|-------|-----|
+| Type errors (mypy, pyright) | `type-fix-planner` | Applies type safety principles |
+| All other errors | `fix-diagnostician` | General-purpose debugging |
+
+Spawn the selected agent (opus) with:
 - Target command: `gh run view <run-id> --log` (the workflow that failed)
 - Error output: Full CI logs from the failed workflow
 - Attempt number: Current iteration (1-indexed)
 - Attempt history: Summary of previous attempts and what was tried
 
-The agent will return a structured plan with these sections:
-- `### Root Cause`
+Both agents return a structured plan with these sections:
+- `### Root Cause` (type-fix-planner also includes `### Principles Applied`)
 - `### Fix Plan`
 - `### Status` — either `CONTINUE` or `BLOCKED: <reason>`
 - `### Blockers` (if any)

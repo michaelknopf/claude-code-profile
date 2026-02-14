@@ -204,11 +204,12 @@ Validates payment processing including authorization, capture, refunds, and erro
 1. Review and adjust priorities based on business needs
 2. Implement refactoring suggestions for high-priority modules (if needed for testability)
 3. Write test suites in priority order using the designs above
-4. Generate new coverage report:
+4. If tests fail, use `/fix just test` to iterate on failures
+5. Generate new coverage report:
    ```bash
    just coverage
    ```
-5. Re-run this audit to verify improvement:
+6. Re-run this audit to verify improvement:
    ```bash
    /coverage-audit coverage.json
    ```

@@ -65,7 +65,8 @@ Process up to 10 tasks per invocation:
    - Instructions to implement the task and report what was done
    - Do NOT include `/next` in the prompt (avoid recursive skill loading)
 7. **Close Task**: Run `bd close <issue-id> --reason "<summary from sub-agent>"`
-8. **Repeat**: Go back to step 1 (completing tasks may unblock others)
+8. **Commit Changes**: Invoke `/savi:commit` skill to create an atomic commit for the completed task
+9. **Repeat**: Go back to step 1 (completing tasks may unblock others)
 
 ### Completion Report
 

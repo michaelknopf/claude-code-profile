@@ -4,7 +4,7 @@ argument-hint: <command to run>
 allowed-tools: Bash(just:*), Bash(npm:*), Bash(pnpm:*), Bash(node:*), Bash(pip:*), Bash(pytest:*), Bash(python:*), Bash(go:*), Bash(git:*), Bash(gradle:*), Bash(java:*)
 ---
 
-# /debug — auto-fix until it passes
+# /fix — auto-fix until it passes
 
 **Command to run (verbatim):** `$ARGUMENTS`
 

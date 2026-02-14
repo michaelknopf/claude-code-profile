@@ -42,3 +42,8 @@ If the first argument is `audit`:
 Ask the user which mode they want:
 - `design` - Create new smoke tests for a feature
 - `audit` - Review and improve existing smoke tests
+
+## Related Commands
+
+- `/fix <test-command>` — After implementing smoke tests, use this to iterate on test failures until they pass
+- `/smoke audit <path>` — After implementing designs, audit the result against principles

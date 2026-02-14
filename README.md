@@ -65,55 +65,108 @@ HTTP-based MCP server providing up-to-date documentation and code examples for p
 - **Type**: HTTP
 - **URL**: https://mcp.context7.com/mcp
 
-## Included Commands
+## Commands
 
-This plugin provides several powerful commands to enhance your Claude Code workflow.
+### Analysis & Auditing (Read-Only)
 
-### Command Categories
-
-#### Analysis & Planning Commands (Read-Only)
-
-These commands **do not make code changes**. They analyze your codebase and produce planning documents.
+These commands analyze your codebase and produce planning documents without making code changes.
 
 ##### `/refactor-audit`
-Scan codebase for design principle violations and generate prioritized refactoring backlog.
-- **Output**: `docs/refactor-audit-YYYY-MM-DD.md` (+ conversation display)
+Scan codebase for design principle violations and generate a prioritized refactoring backlog.
+- **Output**: `docs/notes/refactor-audit-YYYY-MM-DD.md`
 - **Follow-up**: Use `/refactor` to apply recommended fixes
 - **Example**: `/refactor-audit src/`
 
 ##### `/coverage-audit`
-Analyze test coverage gaps and create prioritized test improvement plan.
-- **Output**: `docs/coverage-audit-YYYY-MM-DD.md` (+ conversation display)
-- **Follow-up**: Implement recommended test suites based on designs
+Analyze test coverage gaps and create a prioritized test improvement plan.
+- **Output**: `docs/notes/coverage-audit-YYYY-MM-DD.md`
 - **Example**: `/coverage-audit coverage.json --top=5`
 
-#### Implementation Commands
+##### `/typing-audit`
+Audit Python codebase for type safety issues — dicts that should be typed structures, overuse of `Any`, and other patterns.
+- **Output**: `docs/notes/typing-audit-YYYY-MM-DD.md`
+- **Example**: `/typing-audit src/`
 
-These commands **make code changes** or modify project state.
+##### `/review-pr`
+Review the current branch's PR diff and produce a prioritized audit report of bugs, security issues, design problems, and more.
+- **Output**: `docs/notes/review-pr-{BRANCH}-YYYY-MM-DD.md`
+- **Example**: `/review-pr`
+
+##### `/smoke`
+Design or audit smoke tests using established principles. Two modes: `design` (create new tests) and `audit` (review existing tests).
+- **Example**: `/smoke design src/api/`
+
+### Fixing & Implementation
+
+These commands make code changes or modify project state.
+
+##### `/fix`
+Run a command; if it fails, diagnose and make minimal changes until it succeeds (bounded retries). Intelligently routes type errors to the `type-fix-planner` agent and other errors to the `fix-diagnostician` agent.
+- **Example**: `/fix just test`
+
+##### `/ci-fix`
+Debug failing CI workflows and push fixes until they pass. Automatically follows workflow chains and routes to specialized agents based on error type.
+- **Example**: `/ci-fix 123`
 
 ##### `/refactor`
-Apply design principle-based refactoring to code (uses `/refactor-audit` findings).
+Apply design principle-based refactoring with codebase-wide discovery of similar violations.
+- **Example**: `/refactor src/api/handlers.py:42-80 "convert to RequestHandler class"`
 
-##### `/commit`
-Create contextual git commits. Automatically analyzes your changes and creates an appropriate commit message.
-
-##### `/ci-debug`
-Debug failing CI workflows and push fixes until they pass. Automatically follows workflow chains after fixes.
+##### `/py-dep-upgrade`
+Remove upper bounds from Python dependencies and upgrade to latest versions, fixing any resulting issues.
+- **Example**: `/py-dep-upgrade`
 
 ##### `/pr-reply`
-Address, reply to, and resolve PR review comments with code changes. Streamlines the code review process.
+Address, reply to, and resolve PR review comments with code changes.
+- **Example**: `/pr-reply all`
 
-##### `/debug`
-Diagnose and fix command failures iteratively. Run a command and if it fails, diagnose the issue and make minimal changes until it succeeds (with bounded retries).
+### Task Orchestration
 
-#### Documentation Commands
+Commands for working through structured task backlogs (integrates with beads issue tracker).
+
+##### `/next`
+Pick up the next ready task and work on it. Use `--loop` to process up to 10 tasks in batch mode.
+- **Example**: `/next` or `/next --loop`
+
+##### `/epic-loop`
+Loop through all tasks in a beads epic using the Opus→Sonnet pattern: the `task-planner` agent plans each task, then a Sonnet agent executes it.
+- **Example**: `/epic-loop EPIC-1`
+
+### Documentation
+
+##### `/doc`
+Generate high-level conceptual documentation for a file or folder, focusing on the "why" rather than the "what."
+- **Example**: `/doc src/api/ --output=docs/api-architecture.md`
+
+##### `/doc-refresh`
+Update existing conceptual documentation to reflect the current state of the code it describes.
+- **Example**: `/doc-refresh docs/api-architecture.md`
 
 ##### `/session-doc`
 Generate a structured document summarizing the current session for future reference.
+- **Example**: `/session-doc ~/Documents/sessions`
+
+### Workflow
+
+##### `/commit`
+Create contextual git commits. Analyzes your changes and generates an appropriate commit message.
 
 ---
 
-**Pro tip**: Run analysis commands (`/refactor-audit`, `/coverage-audit`) regularly to build improvement backlogs, then execute incrementally with implementation commands.
+**Pro tip**: Run analysis commands (`/refactor-audit`, `/coverage-audit`, `/typing-audit`) regularly to build improvement backlogs, then execute incrementally with `/refactor`, `/fix`, or `/next --loop`.
+
+## Agents
+
+Commands spawn specialized agents via the Task tool for domain-specific diagnosis and planning. Key agents:
+
+| Agent | Model | Used By | Purpose |
+|-------|-------|---------|---------|
+| `fix-diagnostician` | Opus | `/fix`, `/ci-fix` | General build/test failure diagnosis |
+| `type-fix-planner` | Opus | `/fix`, `/ci-fix`, `/py-dep-upgrade` | Type error diagnosis using type safety principles |
+| `task-planner` | Opus | `/epic-loop` | Structured implementation planning |
+| `test-suite-planner` | Opus | `/coverage-audit` | Test suite design for coverage gaps |
+| `refactor-scout` | Sonnet | `/refactor-audit`, `/refactor` | Codebase-wide pattern/violation search |
+| `typing-scout` | Sonnet | `/typing-audit` | Type safety issue discovery |
 
 ## Extending This Plugin
 
@@ -121,10 +174,15 @@ Generate a structured document summarizing the current session for future refere
 Create `.md` files in the `plugins/savi/commands/` directory to add custom slash commands.
 
 ### Adding Agents
-Create `.md` files in the `plugins/savi/agents/` directory to add specialized subagents.
+Create `.md` files in the `plugins/savi/agents/` directory to add specialized subagents that commands can spawn via the Task tool.
 
 ### Adding Skills
-Create skill directories with `SKILL.md` files in the `plugins/savi/skills/` directory.
+Create skill directories with `SKILL.md` files in the `plugins/savi/skills/` directory for reusable task implementations.
 
 ### Adding Hooks
 Add `hooks.json` configuration files in the `plugins/savi/hooks/` directory to respond to Claude Code events.
+
+### Principle Documents
+Add `.md` files to `plugins/savi/docs/` to define principles that agents reference during analysis. Current documents:
+- `type-safety-principles.md` — Used by `type-fix-planner` and `typing-scout`
+- `smoke-test-principles.md` — Used by `/smoke`

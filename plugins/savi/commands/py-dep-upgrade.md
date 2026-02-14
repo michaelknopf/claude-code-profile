@@ -65,19 +65,22 @@ If tests fail, enter a fix loop with a maximum of 10 attempts:
 
 ### 5.1 Diagnose
 
-Spawn an Opus agent using the Task tool to analyze the failure:
-```
-Analyze this test failure after upgrading dependencies.
+**Select the appropriate diagnostic agent based on error type:**
 
-Failure output:
-[paste failure output]
+Check the failure output for type error patterns:
+- Test command contains: `mypy`, `pyright`, `typecheck`
+- Error output contains: `error:` with type-related messages like `Incompatible`, `has no attribute`, `Missing return`, `Argument of type`
 
-Determine:
-1. Is this a breaking API change in a dependency?
-2. Is this a type error from updated stubs?
-3. Is this a removed/renamed function?
-4. What action should we take?
-```
+| Error Type | Agent | Why |
+|------------|-------|-----|
+| Type errors (mypy, pyright, updated stubs) | `type-fix-planner` | Applies type safety principles; common after dependency upgrades |
+| All other errors (API changes, removals) | `fix-diagnostician` | General-purpose debugging |
+
+Spawn the selected agent with:
+- Error output: Full failure output
+- Context: This is a dependency upgrade — the failure occurred after upgrading packages
+- Attempt number: Current iteration (1-indexed)
+- Attempt history: Summary of previous attempts and what was tried
 
 ### 5.2 Decide Action
 
