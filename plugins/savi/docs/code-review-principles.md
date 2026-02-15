@@ -4,6 +4,18 @@ Code review is an analytical discipline. The reviewer's job is not to find fault
 
 These principles guide what to look for, how to prioritize, and when to hold back.
 
+## The Budget
+
+Every principle in this document serves a single idea: review feedback is a scarce resource.
+
+Every finding costs the reader time and attention. A review with 20 findings — most of them about naming or formatting — sends the signal that the reviewer cares more about surface polish than substance. The reader becomes fatigued and may miss the two findings that actually matter.
+
+Contrast this with a review that surfaces 4 findings, all substantive. Each one carries weight because the reviewer has been selective.
+
+The budget is not fixed. A PR that introduces a critical security vulnerability or fundamentally misguided architecture warrants more findings than a PR that's well-designed with a minor logic gap. But even in the worst case, the budget constrains: prioritize the most important findings and be explicit about which ones are critical versus advisory.
+
+The measure of a good code review is not how many issues it finds. It is whether the issues it raises are the ones that matter most.
+
 ## Understand Before You Evaluate
 
 The most common failure in code review is evaluating code you haven't understood. A reviewer who jumps straight to line-by-line analysis will flag things that make perfect sense in context and miss things that only become visible from a higher vantage point.
@@ -107,18 +119,6 @@ Before committing to a finding, ask:
 - Is this something I would flag if I only had three comments to make on this entire PR?
 
 If the answer to any of these is "no," the finding should be dropped or clearly marked as low-confidence.
-
-## The Budget
-
-All of the principles above serve a single idea: review feedback is a scarce resource.
-
-Every finding costs the reader time and attention. A review with 20 findings — most of them about naming or formatting — sends the signal that the reviewer cares more about surface polish than substance. The reader becomes fatigued and may miss the two findings that actually matter.
-
-Contrast this with a review that surfaces 4 findings, all substantive. Each one carries weight because the reviewer has been selective.
-
-The budget is not fixed. A PR that introduces a critical security vulnerability or fundamentally misguided architecture warrants more findings than a PR that's well-designed with a minor logic gap. But even in the worst case, the budget constrains: prioritize the most important findings and be explicit about which ones are critical versus advisory.
-
-The measure of a good code review is not how many issues it finds. It is whether the issues it raises are the ones that matter most.
 
 ## Summary
 
