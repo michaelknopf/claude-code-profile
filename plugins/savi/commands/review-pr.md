@@ -46,9 +46,9 @@ Parse the command arguments:
 - `--output=<file>`: Custom output file path (relative to repo root)
 - `--no-save`: Display report in conversation only, don't save to file
 
-### Phase 2: Understand Intent (Intent Scout)
+### Phase 2: Understand Intent (Review Scout)
 
-Spawn the `intent-scout` agent (sonnet) to perform a fast first pass. Pass it:
+Spawn the `review-scout` agent (sonnet) to perform a fast first pass. Pass it:
 - The PR metadata from the context above (title, description, labels, commit messages)
 - The changed file list and diff statistics
 - The changed files themselves (for structural scanning)
@@ -65,9 +65,9 @@ If the agent reports context gaps, use `AskUserQuestion` to seek clarification b
 
 **Do not proceed to Phase 3 until intent is clear.**
 
-### Phase 3: Deep Review (PR Reviewer)
+### Phase 3: Deep Review (Review Analyst)
 
-Spawn the `pr-reviewer` agent (opus) to perform the detailed analysis. Pass it:
+Spawn the `review-analyst` agent (opus) to perform the detailed analysis. Pass it:
 
 - The intent summary and structural overview from Phase 2 (plus any clarifications from the user)
 - The full diff (`git diff main...HEAD`)

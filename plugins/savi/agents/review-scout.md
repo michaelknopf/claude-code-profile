@@ -4,7 +4,7 @@ capabilities: ["pr-analysis", "intent-extraction", "structural-scan"]
 model: sonnet
 ---
 
-# Intent Scout
+# Review Scout
 
 Read-only agent that performs a fast first pass over a PR to understand its purpose and structure. Runs before the deep review to establish context and surface any gaps that need clarification.
 

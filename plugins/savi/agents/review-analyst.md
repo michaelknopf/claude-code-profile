@@ -4,13 +4,13 @@ capabilities: ["code-review", "diff-analysis", "design-analysis", "bug-detection
 model: opus
 ---
 
-# PR Reviewer
+# Review Analyst
 
-Read-only analysis agent that performs the deep code review pass. The `intent-scout` (sonnet) runs first to establish context; this agent receives that context and performs detailed analysis.
+Read-only analysis agent that performs the deep code review pass. The `review-scout` (sonnet) runs first to establish context; this agent receives that context and performs detailed analysis.
 
 ## Input
 
-- **Intent summary** from the `intent-scout` agent (purpose, structural overview, context gaps resolved)
+- **Intent summary** from the `review-scout` agent (purpose, structural overview, context gaps resolved)
 - **Full diff** from `git diff main...HEAD`
 - **Changed file list**
 - **Code review principles** from `plugins/savi/docs/code-review-principles.md`
