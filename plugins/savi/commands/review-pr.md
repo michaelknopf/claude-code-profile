@@ -1,12 +1,18 @@
 ---
-description: Review the current branch's PR diff and produce an audit report
+description: Review the current branch's PR diff and produce a prioritized audit report
 argument-hint: "[--output=<file>] [--no-save]"
 allowed-tools: Read, Glob, Grep, Write
 ---
 
 # PR Code Review
 
-You are conducting a code review of a pull request. Your task is to analyze the diff against main and produce a prioritized audit report of issues found.
+You are conducting a code review of a pull request. Your task is to deeply understand the change, then produce a prioritized audit report focused on design, correctness, and logic — not style or implementation minutiae.
+
+## Code Review Principles
+
+!`cat ${CLAUDE_PLUGIN_ROOT}/docs/code-review-principles.md`
+
+---
 
 ## Current Context
 
@@ -15,6 +21,11 @@ You are conducting a code review of a pull request. Your task is to analyze the 
 **PR Details:**
 ```
 !gh pr view --json title,body,labels,url 2>/dev/null || echo "No PR found - reviewing branch diff"
+```
+
+**Commit History:**
+```
+!git log main..HEAD --oneline
 ```
 
 **Diff Statistics:**
@@ -27,27 +38,6 @@ You are conducting a code review of a pull request. Your task is to analyze the 
 !git diff main...HEAD --name-only
 ```
 
-## Issue Categories
-
-Classify each finding into one of these categories:
-
-- **Bug**: Logic errors, incorrect behavior, race conditions, off-by-one errors, null handling issues
-- **Security**: Injection vulnerabilities, auth bypass, data exposure, insecure defaults, missing validation
-- **Design**: Wrong abstraction, tight coupling, separation of concerns violations, poor API design
-- **Logic**: Works on happy path but breaks under edge conditions, incorrect assumptions
-- **Naming**: Misleading names, unclear intent, names that don't match actual behavior
-- **Style**: Formatting issues, project convention inconsistency, code organization
-- **Simplification**: Over-engineering, unnecessary complexity, could be shorter or clearer
-- **Performance**: Inefficient algorithms, N+1 queries, unnecessary allocations (only when meaningful impact)
-
-## Priority Levels
-
-Assign each finding a priority:
-
-- **High**: Bugs, security issues, logic errors that will cause failures in production
-- **Medium**: Design issues, confusing naming, meaningful performance problems
-- **Low**: Style inconsistencies, simplification opportunities that don't affect correctness
-
 ## Review Process
 
 ### Phase 1: Parse Arguments
@@ -56,58 +46,112 @@ Parse the command arguments:
 - `--output=<file>`: Custom output file path (relative to repo root)
 - `--no-save`: Display report in conversation only, don't save to file
 
-### Phase 2: Gather Full Context
+### Phase 2: Understand Intent
 
-1. **Read the complete diff**:
-   ```bash
-   git diff main...HEAD
+**This phase happens before reading any code.**
+
+1. Read the PR title, description, and labels from the context above.
+2. Read the commit messages to understand the incremental story of the change.
+3. If the PR references issues, design docs, or is part of a larger effort, read those to understand the broader arc.
+4. If the PR description is thin or the intent is unclear, use `AskUserQuestion` to seek clarification before proceeding. Ask about:
+   - What problem this PR is solving
+   - Any constraints or tradeoffs the author is working within
+   - Whether this is part of a larger effort
+5. Build a mental model of the change's purpose and constraints.
+
+**Do not proceed to Phase 3 until you have a clear understanding of what this PR is trying to accomplish.**
+
+### Phase 3: High-Level Read
+
+Read the diff and changed files at a structural level — not for bugs or style issues, but to understand the shape of the change:
+- What files were added, modified, or deleted?
+- What's the flow of control?
+- How do the pieces fit together?
+
+This is about understanding the forest. Details come later.
+
+### Phase 4: Spawn Reviewer Agent
+
+Spawn the `pr-reviewer` agent to perform the detailed analysis. Pass to the agent:
+
+- The full diff (`git diff main...HEAD`)
+- The changed file list
+- PR intent summary (from Phase 2)
+- The code review principles (already loaded above)
+- Project conventions from `~/.claude/CLAUDE.md` and project-level `CLAUDE.md`
+
+The agent will:
+1. Read full files for context (not just diff hunks)
+2. Check for contradictions between intent and implementation (docstrings, comments, PR description vs. code)
+3. Review design: abstractions, responsibilities, architectural fit, API surface, extensibility, coupling
+4. Review correctness and security: bugs, trust boundaries, injection vectors, error paths
+5. Review logic: realistic edge conditions the code doesn't handle
+6. Note improvements only if few substantive issues found
+7. Return a structured inventory of findings with initial prioritization
+
+### Phase 5: Prune and Reprioritize
+
+This is the second pass. Review the agent's findings and apply the budget:
+
+1. **Validate each finding**: Read the relevant code yourself to confirm the finding is real. Drop anything you can't confirm.
+
+2. **Reprioritize**: Adjust the agent's initial priorities if needed:
+   - **Urgent**: Bugs and security vulnerabilities that will cause harm in production
+   - **High**: Design issues and intent contradictions with compounding cost
+   - **Medium**: Logic gaps under realistic edge conditions
+   - **Low**: Improvements (naming, style, simplification, performance)
+
+3. **Apply the budget**: If the PR is generally well-designed:
+   - Keep all Urgent and High findings
+   - Include Medium findings only if they're actionable and specific
+   - Include Low findings only if there are very few higher-priority issues
+   - If you'd be left with 0 findings, that's a valid outcome — say so
+
+4. **Ask the user** via `AskUserQuestion` for scope control:
+   ```
+   Found N findings across M files:
+   - Urgent: X (bugs/security)
+   - High: Y (design/intent)
+   - Medium: Z (logic)
+   - Low: W (improvements)
+
+   Options:
+   - Substantive only (Urgent + High + Medium) [Recommended]
+   - Full report (all findings)
+   - Urgent and High only
    ```
 
-2. **Read all changed files** to understand surrounding context (not just the diff lines)
+### Phase 6: Compile Report
 
-3. **Understand PR intent** from:
-   - PR title and description
-   - Commit messages: `git log main..HEAD --oneline`
-   - Any referenced issues or design docs
-
-### Phase 3: Review Each Change
-
-For every change in the diff:
-
-1. **Examine the code** against all issue categories
-2. **Consider the PR's intent** - don't criticize the chosen approach if it's appropriate for the stated goal
-3. **Focus on new code** - ignore pre-existing patterns unless this PR makes them worse
-4. **Apply confidence threshold** - only report issues you're confident about (no false positives)
-5. **Be constructive** - every finding must include a concrete, actionable suggestion
-
-**Key principles:**
-- Skip uncertain findings - better to miss a minor issue than report false positives
-- Don't nitpick trivial style issues unless they genuinely harm readability
-- Consider whether an issue is introduced by this PR or pre-existing
-- Provide code snippets and specific line numbers for each finding
-- Explain WHY something is an issue, not just WHAT is wrong
-
-### Phase 4: Compile Report
-
-Generate a structured markdown report with:
+Generate a structured markdown report with the user's approved scope.
 
 #### Summary Table
 
 ```
-| Priority | Bug | Security | Design | Logic | Naming | Style | Simplification | Performance | Total |
-|----------|-----|----------|--------|-------|--------|-------|----------------|-------------|-------|
-| High     | 0   | 0        | 0      | 0     | 0      | 0     | 0              | 0           | 0     |
-| Medium   | 0   | 0        | 0      | 0     | 0      | 0     | 0              | 0           | 0     |
-| Low      | 0   | 0        | 0      | 0     | 0      | 0     | 0              | 0           | 0     |
-| **Total**| 0   | 0        | 0      | 0     | 0      | 0     | 0              | 0           | 0     |
+| Priority    | Design | Bug | Security | Logic | Intent | Improvement | Total |
+|-------------|--------|-----|----------|-------|--------|-------------|-------|
+| Urgent      | 0      | 0   | 0        | 0     | 0      | 0           | 0     |
+| High        | 0      | 0   | 0        | 0     | 0      | 0           | 0     |
+| Medium      | 0      | 0   | 0        | 0     | 0      | 0           | 0     |
+| Low         | 0      | 0   | 0        | 0     | 0      | 0           | 0     |
+| **Total**   | 0      | 0   | 0        | 0     | 0      | 0           | 0     |
 ```
+
+#### Issue Categories
+
+- **Design**: Wrong abstraction, tight coupling, separation of concerns violations, poor API surface, architectural misfit
+- **Bug**: Logic errors, incorrect behavior, race conditions, boundary condition failures
+- **Security**: Injection vulnerabilities, auth bypass, data exposure, missing validation at trust boundaries
+- **Logic**: Works on happy path but fails under realistic edge conditions
+- **Intent**: Contradictions between documentation/comments/PR description and actual code behavior
+- **Improvement**: Naming, style, simplification, performance (only when genuinely impactful)
 
 #### Findings by Priority
 
-Group findings by priority (High → Medium → Low), then by file. For each finding:
+Group findings by priority (Urgent → High → Medium → Low). For each finding:
 
 ```markdown
-### High Priority
+### Urgent
 
 #### `path/to/file.py:42` — [Bug] Brief one-line description
 
@@ -125,17 +169,17 @@ Detailed explanation of the issue, including why it's problematic and what scena
 #### Notes Section
 
 Include:
+- Overall assessment: is this PR well-designed? Does it accomplish its stated goal?
+- Positive feedback on well-implemented aspects
 - Broader observations about patterns across the PR
-- Positive feedback on well-implemented changes
-- Suggestions for follow-up refactoring (if any)
-- Overall assessment of code quality
+- If no issues found, say so explicitly — a clean review is a valid outcome
 
-### Phase 5: Output
+### Phase 7: Output
 
 1. **Determine output path:**
    - If `--output=<file>` provided, use that path (relative to repo root)
    - Otherwise, use `docs/notes/review-pr-{BRANCH}-{YYYY-MM-DD}.md`
-     - Extract branch name from Phase 2
+     - Extract branch name from context above
      - Use today's date in ISO format
 
 2. **Save report** (unless `--no-save` flag is present):
@@ -145,7 +189,7 @@ Include:
 
 3. **Display summary** in conversation:
    - Show the summary table
-   - List high-priority findings (brief)
+   - List Urgent and High findings (brief)
    - Include the file path where the full report was saved
    - If `--no-save`, display the complete report in the conversation
 
@@ -156,19 +200,25 @@ Include:
 
 ## Summary
 
-| Priority | Bug | Security | Design | Logic | Naming | Style | Simplification | Performance | Total |
-|----------|-----|----------|--------|-------|--------|-------|----------------|-------------|-------|
-| High     | 2   | 1        | 0      | 1     | 0      | 0     | 0              | 0           | 4     |
-| Medium   | 0   | 0        | 3      | 0     | 2      | 0     | 1              | 0           | 6     |
-| Low      | 0   | 0        | 0      | 0     | 0      | 4     | 2              | 0           | 6     |
-| **Total**| 2   | 1        | 3      | 1     | 2      | 4     | 3              | 0           | 16    |
+| Priority    | Design | Bug | Security | Logic | Intent | Improvement | Total |
+|-------------|--------|-----|----------|-------|--------|-------------|-------|
+| Urgent      | 0      | 2   | 1        | 0     | 0      | 0           | 3     |
+| High        | 2      | 0   | 0        | 0     | 1      | 0           | 3     |
+| Medium      | 0      | 0   | 0        | 2     | 0      | 0           | 2     |
+| Low         | 0      | 0   | 0        | 0     | 0      | 0           | 0     |
+| **Total**   | 2      | 2   | 1        | 2     | 1      | 0           | 8     |
 
-## High Priority Issues
+## Urgent
 
-1. `src/api/auth.py:45` — [Security] SQL injection vulnerability in user lookup
+1. `src/api/auth.py:45` — [Security] SQL injection in user lookup query
 2. `src/services/processor.py:123` — [Bug] Uncaught exception when input is None
 3. `src/api/auth.py:78` — [Bug] Race condition in token validation
-4. `src/utils/parser.py:34` — [Logic] Integer overflow on large inputs
+
+## High
+
+4. `src/services/processor.py:30-80` — [Design] Single method handles validation, transformation, and persistence
+5. `src/api/routes.py:15-40` — [Design] Route handler contains business logic that belongs in service layer
+6. `src/models/user.py:1-15` — [Intent] Module docstring describes authentication but module handles profile management
 
 Full report saved to: `docs/notes/review-pr-add-auth-2026-01-23.md`
 ```
@@ -179,11 +229,3 @@ After reviewing, use these commands to act on findings:
 - `/pr-reply` — Address and resolve PR review comments with code changes
 - `/ci-fix` — Debug and fix failing CI workflows on this PR
 - `/fix <command>` — Fix specific issues identified in the report (e.g., `/fix just test`)
-
-## Important Notes
-
-- **No false positives**: Only report issues you're genuinely confident about
-- **Context matters**: Understand the PR's goal before criticizing implementation choices
-- **Be specific**: Include file paths, line numbers, code snippets, and concrete suggestions
-- **Stay objective**: Focus on technical merit, not style preferences (unless they impact readability)
-- **Acknowledge good work**: If the PR is well-implemented, say so in the Notes section
