@@ -46,56 +46,51 @@ Parse the command arguments:
 - `--output=<file>`: Custom output file path (relative to repo root)
 - `--no-save`: Display report in conversation only, don't save to file
 
-### Phase 2: Understand Intent
+### Phase 2: Understand Intent (Intent Scout)
 
-**This phase happens before reading any code.**
+Spawn the `intent-scout` agent (sonnet) to perform a fast first pass. Pass it:
+- The PR metadata from the context above (title, description, labels, commit messages)
+- The changed file list and diff statistics
+- The changed files themselves (for structural scanning)
 
-1. Read the PR title, description, and labels from the context above.
-2. Read the commit messages to understand the incremental story of the change.
-3. If the PR references issues, design docs, or is part of a larger effort, read those to understand the broader arc.
-4. If the PR description is thin or the intent is unclear, use `AskUserQuestion` to seek clarification before proceeding. Ask about:
-   - What problem this PR is solving
-   - Any constraints or tradeoffs the author is working within
-   - Whether this is part of a larger effort
-5. Build a mental model of the change's purpose and constraints.
+The agent will return:
+- **Intent summary**: What this PR does and why
+- **Structural overview**: Shape of the change at a high level
+- **Context gaps**: Areas where intent is unclear
 
-**Do not proceed to Phase 3 until you have a clear understanding of what this PR is trying to accomplish.**
+If the agent reports context gaps, use `AskUserQuestion` to seek clarification before proceeding. Ask about:
+- What problem this PR is solving
+- Any constraints or tradeoffs the author is working within
+- Whether this is part of a larger effort
 
-### Phase 3: High-Level Read
+**Do not proceed to Phase 3 until intent is clear.**
 
-Read the diff and changed files at a structural level — not for bugs or style issues, but to understand the shape of the change:
-- What files were added, modified, or deleted?
-- What's the flow of control?
-- How do the pieces fit together?
+### Phase 3: Deep Review (PR Reviewer)
 
-This is about understanding the forest. Details come later.
+Spawn the `pr-reviewer` agent (opus) to perform the detailed analysis. Pass it:
 
-### Phase 4: Spawn Reviewer Agent
-
-Spawn the `pr-reviewer` agent to perform the detailed analysis. Pass to the agent:
-
+- The intent summary and structural overview from Phase 2 (plus any clarifications from the user)
 - The full diff (`git diff main...HEAD`)
 - The changed file list
-- PR intent summary (from Phase 2)
 - The code review principles (already loaded above)
 - Project conventions from `~/.claude/CLAUDE.md` and project-level `CLAUDE.md`
 
 The agent will:
 1. Read full files for context (not just diff hunks)
-2. Check for contradictions between intent and implementation (docstrings, comments, PR description vs. code)
+2. Check for contradictions between intent and implementation
 3. Review design: abstractions, responsibilities, architectural fit, API surface, extensibility, coupling
 4. Review correctness and security: bugs, trust boundaries, injection vectors, error paths
 5. Review logic: realistic edge conditions the code doesn't handle
 6. Note improvements only if few substantive issues found
-7. Return a structured inventory of findings with initial prioritization
+7. Return a prioritized inventory of findings
 
-### Phase 5: Prune and Reprioritize
+### Phase 4: Prune and Reprioritize
 
-This is the second pass. Review the agent's findings and apply the budget:
+Review the reviewer agent's findings and apply the budget:
 
 1. **Validate each finding**: Read the relevant code yourself to confirm the finding is real. Drop anything you can't confirm.
 
-2. **Reprioritize**: Adjust the agent's initial priorities if needed:
+2. **Reprioritize**: Adjust priorities if needed:
    - **Urgent**: Bugs and security vulnerabilities that will cause harm in production
    - **High**: Design issues and intent contradictions with compounding cost
    - **Medium**: Logic gaps under realistic edge conditions
@@ -121,7 +116,7 @@ This is the second pass. Review the agent's findings and apply the budget:
    - Urgent and High only
    ```
 
-### Phase 6: Compile Report
+### Phase 5: Compile Report
 
 Generate a structured markdown report with the user's approved scope.
 
@@ -174,7 +169,7 @@ Include:
 - Broader observations about patterns across the PR
 - If no issues found, say so explicitly — a clean review is a valid outcome
 
-### Phase 7: Output
+### Phase 6: Output
 
 1. **Determine output path:**
    - If `--output=<file>` provided, use that path (relative to repo root)

@@ -6,11 +6,11 @@ model: opus
 
 # PR Reviewer
 
-Read-only analysis agent that performs the detailed code review pass. The orchestrating command handles intent understanding and high-level reading before spawning this agent. This agent receives that context and performs deep analysis.
+Read-only analysis agent that performs the deep code review pass. The `intent-scout` (sonnet) runs first to establish context; this agent receives that context and performs detailed analysis.
 
 ## Input
 
-- **PR intent summary** (from the command's intent-understanding phase)
+- **Intent summary** from the `intent-scout` agent (purpose, structural overview, context gaps resolved)
 - **Full diff** from `git diff main...HEAD`
 - **Changed file list**
 - **Code review principles** from `plugins/savi/docs/code-review-principles.md`
@@ -56,8 +56,6 @@ Found N issues across M files.
 
 6. [Naming] src/models/user.py:15 — `proc_data` doesn't communicate what processing means
 ```
-
-If context was insufficient to understand the PR's intent, note this explicitly so the command can seek clarification.
 
 ## Guidelines
 
