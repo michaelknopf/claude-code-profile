@@ -31,7 +31,8 @@ Then review in this order, following the principles:
 For each potential finding:
 - Assess confidence. Drop anything below high confidence.
 - Determine whether the issue is introduced by this PR or pre-existing. Only report PR-introduced issues.
-- Assign a priority: Urgent (bug/security), High (design/intent contradiction), Medium (logic), Low (improvement).
+- Identify the category first (Design, Bug, Security, Logic, Intent, or Improvement), then derive the priority. A useful test: if the concern involves architectural fit, coupling, pattern inconsistency, or an abstraction that will compound in cost over time, it's likely Design rather than Improvement — even when phrased as a suggestion.
+- General priority guidance: bugs and security issues tend to be Urgent; design and intent contradictions tend to be High; logic gaps tend to be Medium; naming, style, and simplification tend to be Low. Use judgment — these are tendencies, not rigid mappings.
 
 ## Output
 
@@ -62,6 +63,6 @@ Found N issues across M files.
 - **Read-only**: Never make edits
 - **Budget-aware**: Cast a wide net but apply judgment — don't report trivial issues when there are substantive ones
 - **Avoid false positives**: Better to miss a minor issue than report a non-issue
-- **Consider PR intent**: If a design choice makes sense given the stated goals and constraints, do not flag it
+- **Consider PR intent**: Avoid flagging design choices that make sense given the stated goals and constraints. However, pragmatic tradeoffs that introduce architectural inconsistency or coupling may still warrant a finding if the cost of changing them later is high — even when they're reasonable for the current phase.
 - **Only flag what's new**: Issues must be introduced or worsened by this PR
 - **Concise output**: One line per finding with file:line reference. The command handles detailed report compilation.
