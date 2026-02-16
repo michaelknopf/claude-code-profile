@@ -1,7 +1,6 @@
 ---
 description: Review the current branch's PR diff and produce a prioritized audit report
-argument-hint: "[--output=<file>] [--no-save]"
-allowed-tools: Read, Glob, Grep, Write
+allowed-tools: Read, Glob, Grep, Write, Bash(bd:*)
 ---
 
 # PR Code Review
@@ -40,13 +39,7 @@ You are conducting a code review of a pull request. Your task is to deeply under
 
 ## Review Process
 
-### Phase 1: Parse Arguments
-
-Parse the command arguments:
-- `--output=<file>`: Custom output file path (relative to repo root)
-- `--no-save`: Display report in conversation only, don't save to file
-
-### Phase 2: Understand Intent (Review Scout)
+### Phase 1: Understand Intent (Review Scout)
 
 Spawn the `review-scout` agent (sonnet) to perform a fast first pass. Pass it:
 - The PR metadata from the context above (title, description, labels, commit messages)
@@ -63,13 +56,13 @@ If the agent reports context gaps, use `AskUserQuestion` to seek clarification b
 - Any constraints or tradeoffs the author is working within
 - Whether this is part of a larger effort
 
-**Do not proceed to Phase 3 until intent is clear.**
+**Do not proceed to Phase 2 until intent is clear.**
 
-### Phase 3: Deep Review (Review Analyst)
+### Phase 2: Deep Review (Review Analyst)
 
 Spawn the `review-analyst` agent (opus) to perform the detailed analysis. Pass it:
 
-- The intent summary and structural overview from Phase 2 (plus any clarifications from the user)
+- The intent summary and structural overview from Phase 1 (plus any clarifications from the user)
 - The full diff (`git diff main...HEAD`)
 - The changed file list
 - The code review principles (already loaded above)
@@ -84,7 +77,7 @@ The agent will:
 6. Note improvements only if few substantive issues found
 7. Return a prioritized inventory of findings
 
-### Phase 4: Prune and Reprioritize
+### Phase 3: Prune and Reprioritize
 
 Review the reviewer agent's findings and apply the budget:
 
@@ -116,7 +109,7 @@ Review the reviewer agent's findings and apply the budget:
    - Urgent and High only
    ```
 
-### Phase 5: Compile Report
+### Phase 4: Compile Report
 
 Generate a structured markdown report with the user's approved scope.
 
@@ -169,15 +162,13 @@ Include:
 - Broader observations about patterns across the PR
 - If no issues found, say so explicitly — a clean review is a valid outcome
 
-### Phase 6: Output
+### Phase 5: Output
 
-1. **Determine output path:**
-   - If `--output=<file>` provided, use that path (relative to repo root)
-   - Otherwise, use `docs/notes/review-pr-{BRANCH}-{YYYY-MM-DD}.md`
-     - Extract branch name from context above
-     - Use today's date in ISO format
+1. **Determine output path:** `docs/notes/review-pr-{BRANCH}-{YYYY-MM-DD}.md`
+   - Extract branch name from context above
+   - Use today's date in ISO format
 
-2. **Save report** (unless `--no-save` flag is present):
+2. **Save report:**
    - Create `docs/notes/` directory if it doesn't exist
    - Write the full report to the output file
    - Confirm the file was written
@@ -186,7 +177,102 @@ Include:
    - Show the summary table
    - List Urgent and High findings (brief)
    - Include the file path where the full report was saved
-   - If `--no-save`, display the complete report in the conversation
+
+### Phase 6: Beads Integration (optional)
+
+After saving the report, use `AskUserQuestion` to ask the user if they want to create beads issues for the findings:
+
+```
+Options:
+- Yes, create beads issues (Recommended)
+- No, skip
+```
+
+If the user declines, stop here.
+
+If the user accepts, proceed with beads integration:
+
+#### 6.1: Check Beads Availability
+
+```bash
+bd info --json 2>/dev/null
+```
+
+If beads is not initialized (command fails), inform the user and skip. Do not proceed with issue creation.
+
+#### 6.2: Create Epic
+
+Create an epic to track the review findings:
+
+```bash
+bd create "PR Review: <branch> (<YYYY-MM-DD>)" -t epic -p 2 \
+  -d "Review report: docs/notes/review-pr-<branch>-<YYYY-MM-DD>.md" --json
+```
+
+Extract the epic ID from the JSON response for use in subsequent steps.
+
+#### 6.3: Create Subtasks
+
+For each finding in the report, create a subtask:
+
+```bash
+bd create "<short-title>" -t task -p <priority> --parent <epic-id> \
+  -d "**Category:** [<category>]
+
+**Location:** <file:lines>
+
+**Description:** <description>
+
+**Suggestion:** <suggestion>" --json
+```
+
+**Priority mapping:**
+- Urgent findings → `1`
+- High findings → `1`
+- Medium findings → `2`
+- Low findings → `3`
+
+**Short title format:** `<file> - <brief-description>`
+- Example: `auth.py - Fix SQL injection in user lookup`
+- Keep titles under 60 characters
+
+Extract task IDs from JSON responses and map them to report finding numbers (e.g., finding #1 → task_id_1).
+
+#### 6.4: Set Dependencies
+
+For findings that should be tackled in a particular order (e.g., a design issue must be fixed before a dependent logic issue):
+
+```bash
+bd dep add <prerequisite-task-id> <dependent-task-id> --type blocks
+```
+
+**Important:** Only create blocking dependencies. Related tasks that don't block each other should remain independent.
+
+#### 6.5: Sync to Remote
+
+Synchronize the issues to the remote repository:
+
+```bash
+bd sync
+```
+
+#### 6.6: Report to User
+
+Display a summary of the beads integration:
+
+```
+Created epic <epic-id> with N subtasks in beads.
+
+To address these findings:
+1. Run `bd ready` to see unblocked tasks
+2. Run `/savi:next --loop` in a new session to process all ready tasks automatically
+3. Or pick individual tasks with `/savi:next` (processes one at a time)
+
+Track progress:
+- `bd stats` - View completion statistics
+- `bd blocked` - See tasks waiting on dependencies
+- `bd show <epic-id>` - View full epic details
+```
 
 ## Example Output (Conversation)
 
