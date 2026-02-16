@@ -73,23 +73,23 @@ These commands analyze your codebase and produce planning documents without maki
 
 ##### `/refactor-audit`
 Scan codebase for design principle violations and generate a prioritized refactoring backlog.
-- **Output**: `docs/notes/refactor-audit-YYYY-MM-DD.md`
+- **Output**: `docs/notes/refactor-audit-YYYY-MM-DD-HH-MM.md`
 - **Follow-up**: Use `/refactor` to apply recommended fixes
 - **Example**: `/refactor-audit src/`
 
 ##### `/coverage-audit`
 Analyze test coverage gaps and create a prioritized test improvement plan.
-- **Output**: `docs/notes/coverage-audit-YYYY-MM-DD.md`
+- **Output**: `docs/notes/coverage-audit-YYYY-MM-DD-HH-MM.md`
 - **Example**: `/coverage-audit coverage.json --top=5`
 
 ##### `/typing-audit`
 Audit Python codebase for type safety issues — dicts that should be typed structures, overuse of `Any`, and other patterns.
-- **Output**: `docs/notes/typing-audit-YYYY-MM-DD.md`
+- **Output**: `docs/notes/typing-audit-YYYY-MM-DD-HH-MM.md`
 - **Example**: `/typing-audit src/`
 
 ##### `/review-pr`
 Review the current branch's PR diff and produce a prioritized audit report of bugs, security issues, design problems, and more.
-- **Output**: `docs/notes/review-pr-{BRANCH}-YYYY-MM-DD.md`
+- **Output**: `docs/notes/review-pr-{BRANCH}-YYYY-MM-DD-HH-MM.md`
 - **Example**: `/review-pr`
 
 ##### `/smoke`

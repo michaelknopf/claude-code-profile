@@ -164,9 +164,9 @@ Include:
 
 ### Phase 5: Output
 
-1. **Determine output path:** `docs/notes/reports/review-pr-{BRANCH}-{YYYY-MM-DD}.md`
+1. **Determine output path:** `docs/notes/reports/review-pr-{BRANCH}-{YYYY-MM-DD-HH-MM}.md`
    - Extract branch name from context above
-   - Use today's date in ISO format
+   - Use today's date and time
 
 2. **Save report:**
    - Create `docs/notes/reports/` directory if it doesn't exist
@@ -205,8 +205,8 @@ If beads is not initialized (command fails), inform the user and skip. Do not pr
 Create an epic to track the review findings:
 
 ```bash
-bd create "PR Review: <branch> (<YYYY-MM-DD>)" -t epic -p 2 \
-  -d "Review report: docs/notes/reports/review-pr-<branch>-<YYYY-MM-DD>.md" --json
+bd create "PR Review: <branch> (<YYYY-MM-DD-HH-MM>)" -t epic -p 2 \
+  -d "Review report: docs/notes/reports/review-pr-<branch>-<YYYY-MM-DD-HH-MM>.md" --json
 ```
 
 Extract the epic ID from the JSON response for use in subsequent steps.
@@ -315,7 +315,7 @@ Track progress:
 5. `src/api/routes.py:15-40` — [Design] Route handler contains business logic that belongs in service layer
 6. `src/models/user.py:1-15` — [Intent] Module docstring describes authentication but module handles profile management
 
-Full report saved to: `docs/notes/reports/review-pr-add-auth-2026-01-23.md`
+Full report saved to: `docs/notes/reports/review-pr-add-auth-2026-01-23-14-30.md`
 ```
 
 ## Related Commands

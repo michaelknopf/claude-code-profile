@@ -20,7 +20,7 @@ allowed-tools: Read, Glob, Grep
 
 ## Output
 
-**Default behavior**: Saves plan to `docs/notes/reports/coverage-audit-YYYY-MM-DD.md` AND displays in conversation.
+**Default behavior**: Saves plan to `docs/notes/reports/coverage-audit-YYYY-MM-DD-HH-MM.md` AND displays in conversation.
 
 **Options**:
 - `--output=<file>` - Save to custom location instead
@@ -219,14 +219,14 @@ Validates payment processing including authorization, capture, refunds, and erro
 
 ## Phase 6: Output
 
-**Default**: Save plan to `docs/notes/reports/coverage-audit-{YYYY-MM-DD}.md` AND display in conversation
+**Default**: Save plan to `docs/notes/reports/coverage-audit-{YYYY-MM-DD-HH-MM}.md` AND display in conversation
 
 **Steps**:
 1. Ensure `docs/notes/reports/` directory exists (create if needed)
-2. Generate timestamped filename: `coverage-audit-{YYYY-MM-DD}.md`
+2. Generate timestamped filename: `coverage-audit-{YYYY-MM-DD-HH-MM}.md`
 3. Write plan to file
 4. Display plan in conversation
-5. Show confirmation: "📄 Plan saved to `docs/notes/reports/coverage-audit-2026-01-11.md`"
+5. Show confirmation: "📄 Plan saved to `docs/notes/reports/coverage-audit-2026-01-11-14-30.md`"
 
 **If `--output=<file>` specified**:
 - Use custom path instead of default
@@ -238,7 +238,7 @@ Validates payment processing including authorization, capture, refunds, and erro
 
 ## Examples
 
-### Basic usage (saves to docs/notes/reports/coverage-audit-YYYY-MM-DD.md)
+### Basic usage (saves to docs/notes/reports/coverage-audit-YYYY-MM-DD-HH-MM.md)
 ```bash
 /coverage-audit coverage.json
 ```

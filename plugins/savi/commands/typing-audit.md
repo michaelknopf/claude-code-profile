@@ -24,7 +24,7 @@ allowed-tools: Read, Glob, Grep, Bash(bd:*)
 
 ## Output
 
-**Default behavior**: Saves report to `docs/notes/reports/typing-audit-YYYY-MM-DD.md` AND displays in conversation.
+**Default behavior**: Saves report to `docs/notes/reports/typing-audit-YYYY-MM-DD-HH-MM.md` AND displays in conversation.
 
 **Options**:
 - `--output=<file>` - Save to custom location instead
@@ -107,7 +107,7 @@ Generate a structured markdown report with:
 ```markdown
 # Typing Audit Report
 
-Generated: YYYY-MM-DD
+Generated: YYYY-MM-DD-HH-MM
 Scope: <directory or "entire codebase">
 Principles: ~/.claude/CLAUDE.md
 
@@ -271,7 +271,7 @@ If beads is available (command succeeds), integrate findings with beads issue tr
 Create an epic to track the audit:
 
 ```bash
-bd create "Typing Audit: <scope> (<YYYY-MM-DD>)" -t epic -p 2 --json
+bd create "Typing Audit: <scope> (<YYYY-MM-DD-HH-MM>)" -t epic -p 2 --json
 ```
 
 Extract the epic ID from the JSON response for use in subsequent steps.
@@ -357,14 +357,14 @@ If `bd info` fails (beads not initialized), skip this phase silently and proceed
 
 ## Phase 7: Output
 
-**Default**: Save report to `docs/notes/reports/typing-audit-{YYYY-MM-DD}.md` AND display in conversation
+**Default**: Save report to `docs/notes/reports/typing-audit-{YYYY-MM-DD-HH-MM}.md` AND display in conversation
 
 **Steps**:
 1. Ensure `docs/notes/reports/` directory exists (create if needed)
-2. Generate timestamped filename: `typing-audit-{YYYY-MM-DD}.md`
+2. Generate timestamped filename: `typing-audit-{YYYY-MM-DD-HH-MM}.md`
 3. Write report to file
 4. Display report in conversation
-5. Show confirmation: "📄 Report saved to `docs/notes/reports/typing-audit-2026-01-11.md`"
+5. Show confirmation: "📄 Report saved to `docs/notes/reports/typing-audit-2026-01-11-14-30.md`"
 
 **If `--output=<file>` specified**:
 - Use custom path instead of default
@@ -387,7 +387,7 @@ If `bd info` fails (beads not initialized), skip this phase silently and proceed
 
 ## Examples
 
-### Example 1: Full codebase audit (saves to docs/notes/reports/typing-audit-YYYY-MM-DD.md)
+### Example 1: Full codebase audit (saves to docs/notes/reports/typing-audit-YYYY-MM-DD-HH-MM.md)
 ```
 /typing-audit
 ```
