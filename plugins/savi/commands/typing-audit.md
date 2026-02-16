@@ -50,19 +50,9 @@ Extract from `$ARGUMENTS`:
 - **No-save flag** (optional) - e.g., `--no-save`
   - If provided, display report in conversation only
 
-## Phase 2: Load Type Principles
+## Type Safety Principles
 
-Read the type safety principles document to understand patterns to detect:
-
-**Primary source:** `plugins/savi/docs/type-safety-principles.md`
-
-Use Oracle MCP or direct Read to load the document. Extract key principles:
-- Fixed-key data belongs in structured types (not dicts)
-- Stub files are all-or-nothing (prefer wrappers)
-- Isolate type workarounds (DRY for casts/ignores)
-- Use generic types with inline `[T]` syntax (Python 3.12+)
-- Use modern `type` keyword for aliases
-- Minimize and specify type ignores
+!`cat ${CLAUDE_PLUGIN_ROOT}/docs/type-safety-principles.md`
 
 Also reference `~/.claude/CLAUDE.md` for any project-specific type conventions.
 

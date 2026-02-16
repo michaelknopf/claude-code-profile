@@ -18,7 +18,7 @@ This command uses different diagnostic agents based on the type of error:
 
 | Error Type | Agent | Why |
 |------------|-------|-----|
-| Type errors (mypy, pyright) | `type-fix-planner` | Applies type safety principles from `plugins/savi/docs/type-safety-principles.md` |
+| Type errors (mypy, pyright) | `type-fix-planner` | Applies type safety principles |
 | All other errors | `fix-diagnostician` | General-purpose debugging |
 
 **Type error detection patterns:**

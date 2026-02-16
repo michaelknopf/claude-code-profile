@@ -15,15 +15,16 @@ When auditing Python codebases for type safety:
 - Need to identify overuse of `Any` type hints
 - Want to improve overall type safety across the codebase
 
+## Type Safety Principles
+
+!`cat ${CLAUDE_PLUGIN_ROOT}/docs/type-safety-principles.md`
+
+---
+
 ## Input
 
 - **Target directory** or scope to audit
-- **Type principles** from `plugins/savi/docs/type-safety-principles.md`
-  - Key principles to apply during analysis:
-    - Fixed-key data belongs in structured types
-    - Stub files are all-or-nothing (prefer wrappers)
-    - Isolate type workarounds (DRY for casts/ignores)
-    - Use generic types and modern type syntax
+- **Type principles** loaded above
 - **Categories** to search for (dict patterns, Any types, or both)
 
 ## Behavior
@@ -77,7 +78,7 @@ Any → Specific Type (K issues):
 - **Read-only**: Never make edits
 - **Focused search**: Look for the specific patterns requested
 - **Concise output**: File paths, line numbers, brief descriptions
-- **Reference principles**: Quote relevant principles from `plugins/savi/docs/type-safety-principles.md`
+- **Reference principles**: Quote relevant principles from the type safety principles loaded above
   - Example: When flagging a dict with fixed keys, cite "Fixed-key data belongs in structured types"
   - Example: When finding repeated casts, cite "Isolate type workarounds"
 - **Avoid false positives**: Don't flag legitimate uses (e.g., dict[str, Any] for truly dynamic data)

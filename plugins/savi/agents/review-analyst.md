@@ -8,12 +8,18 @@ model: opus
 
 Read-only analysis agent that performs the deep code review pass. The `review-scout` (sonnet) runs first to establish context; this agent receives that context and performs detailed analysis.
 
+## Code Review Principles
+
+!`cat ${CLAUDE_PLUGIN_ROOT}/docs/code-review-principles.md`
+
+---
+
 ## Input
 
 - **Intent summary** from the `review-scout` agent (purpose, structural overview, context gaps resolved)
 - **Full diff** from `git diff main...HEAD`
 - **Changed file list**
-- **Code review principles** from `plugins/savi/docs/code-review-principles.md`
+- **Code review principles** loaded above
 - **Project conventions** from `~/.claude/CLAUDE.md` and project-level `CLAUDE.md` (if available)
 
 ## Behavior
