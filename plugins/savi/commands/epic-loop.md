@@ -33,6 +33,11 @@ Continue iterating until the epic is complete or all remaining tasks are blocked
 - Run: `bd show <task-id>`
 - Parse the full task description and context
 
+### C2. Check Planning Strategy
+- Check if the task output from `bd show` includes the label `plan:skip`
+  - If yes: Skip steps D and E. Go directly to step F (Execute with Sonnet), including the full task description as the implementation spec.
+  - If no (or no labels present): Proceed to step D as normal.
+
 ### D. Plan with Opus
 - Spawn Task tool with:
   - subagent_type: "task-planner"

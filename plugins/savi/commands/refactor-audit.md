@@ -264,6 +264,19 @@ bd create "<short-title>" -t task -p <priority> --parent <epic-id> \
 - Medium priority findings → `2`
 - Low priority findings → `3`
 
+**Planning label:** Add `-l plan:skip` when **all** of these are true:
+- The fix is mechanical — no design decisions or trade-offs to evaluate
+- The task description already specifies exactly what to change (file, location, concrete transformation)
+- The change affects 1-2 files at most
+- Examples: extract code from `__init__.py` to a named module, rename a variable, delete an unused import
+
+Do **not** add `plan:skip` when:
+- The fix requires creating new abstractions (classes, modules) that consumers then need to adopt
+- Multiple valid approaches exist (e.g., composition vs delegation vs strategy pattern)
+- The description says "consider" or "evaluate" rather than prescribing a specific change
+
+When in doubt, omit the label. An unnecessary planning phase wastes less than a failed unplanned execution.
+
 **Short title format:** `<file> - <brief-description>`
 - Example: `handlers.py - Convert to RequestHandler class`
 - Keep titles under 60 characters

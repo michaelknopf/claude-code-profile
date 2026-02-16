@@ -232,6 +232,20 @@ bd create "<short-title>" -t task -p <priority> --parent <epic-id> \
 - Medium findings → `2`
 - Low findings → `3`
 
+**Planning label:** Add `-l plan:skip` when **all** of these are true:
+- The suggestion is fully prescriptive — it specifies exactly what code to change and how
+- The fix affects 1-2 files at most
+- No design decisions or trade-offs to evaluate
+- Examples: fix an off-by-one error, add a missing null check, rename a misleading variable, add input validation at a specific location
+
+Do **not** add `plan:skip` when:
+- The finding is a design issue (wrong abstraction, tight coupling, separation of concerns)
+- The fix requires understanding cross-file dependencies
+- The suggestion is directional rather than prescriptive (e.g., "restructure this handler")
+- Multiple valid fix approaches exist
+
+When in doubt, omit the label. An unnecessary planning phase wastes less than a failed unplanned execution.
+
 **Short title format:** `<file> - <brief-description>`
 - Example: `auth.py - Fix SQL injection in user lookup`
 - Keep titles under 60 characters

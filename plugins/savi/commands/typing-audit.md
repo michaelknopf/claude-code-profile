@@ -296,6 +296,19 @@ bd create "<short-title>" -t task -p <priority> --parent <epic-id> \
 - Medium priority findings → `2`
 - Low priority findings → `3`
 
+**Planning label:** Add `-l plan:skip` when **all** of these are true:
+- The fix is mechanical — no design decisions or trade-offs to evaluate
+- The task description already specifies exactly what to change (file, location, concrete transformation)
+- The change affects 1-2 files at most
+- Examples: add a type annotation, narrow an `Any` to a specific type, convert a single dict literal to a dataclass with known fields
+
+Do **not** add `plan:skip` when:
+- The fix requires creating a new class/model that consumers then need to adopt (the model creation might be simple, but the consumer updates need planning)
+- Multiple valid approaches exist (e.g., dataclass vs pydantic vs TypedDict)
+- The description says "consider" or "evaluate" rather than prescribing a specific change
+
+When in doubt, omit the label. An unnecessary planning phase wastes less than a failed unplanned execution.
+
 **Short title format:** `<file> - <brief-description>`
 - Example: `handlers.py - Convert Dict to UserData model`
 - Keep titles under 60 characters
