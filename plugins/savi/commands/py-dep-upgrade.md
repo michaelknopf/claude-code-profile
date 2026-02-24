@@ -73,8 +73,8 @@ Check the failure output for type error patterns:
 
 | Error Type | Agent | Why |
 |------------|-------|-----|
-| Type errors (mypy, pyright, updated stubs) | `type-fix-planner` | Applies type safety principles; common after dependency upgrades |
-| All other errors (API changes, removals) | `fix-diagnostician` | General-purpose debugging |
+| Type errors (mypy, pyright, updated stubs) | `savi:type-fix-planner` | Applies type safety principles; common after dependency upgrades |
+| All other errors (API changes, removals) | `savi:fix-diagnostician` | General-purpose debugging |
 
 Spawn the selected agent with:
 - Error output: Full failure output

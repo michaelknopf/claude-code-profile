@@ -16,10 +16,10 @@ You orchestrate an autonomous Opus→Sonnet loop to diagnose and fix failures un
 
 This command uses different diagnostic agents based on the type of error:
 
-| Error Type | Agent | Why |
-|------------|-------|-----|
-| Type errors (mypy, pyright) | `type-fix-planner` | Applies type safety principles |
-| All other errors | `fix-diagnostician` | General-purpose debugging |
+| Error Type | Agent                   | Why |
+|------------|-------------------------|-----|
+| Type errors (mypy, pyright) | `savi:type-fix-planner` | Applies type safety principles |
+| All other errors | `savi:fix-diagnostician`     | General-purpose debugging |
 
 **Type error detection patterns:**
 - Command contains: `mypy`, `pyright`, `--strict`, `--check`
@@ -50,8 +50,8 @@ Check the error output for patterns indicating type errors:
 
 **Select the appropriate diagnostician:**
 
-- **Type errors detected** → Spawn `type-fix-planner` agent (opus) - applies type safety principles
-- **Other errors** → Spawn `fix-diagnostician` agent (opus) - general debugging
+- **Type errors detected** → Spawn `savi:type-fix-planner` agent (opus) - applies type safety principles
+- **Other errors** → Spawn `savi:fix-diagnostician` agent (opus) - general debugging
 
 **Inputs to pass to the selected agent:**
 - Target command: `$ARGUMENTS`

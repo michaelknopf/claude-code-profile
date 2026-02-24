@@ -110,23 +110,24 @@ How many should I analyze in depth?
 - All 12
 ```
 
-## Phase 4: Deep Analysis (Parallel Sub-Agents)
+## Phase 4: Deep Analysis (Single Scout Agent)
 
-For each approved coverage gap, spawn a `test-suite-planner` agent **in parallel** with `model: opus`.
+Spawn a single `test-suite-planner` agent with `model: opus` to analyze all approved coverage gaps in one pass.
 
-Pass to each agent:
-- File path and uncovered line ranges
-- The actual source code
-- Brief context about what the code does
-- Any existing test files for that module
+Pass to the agent:
+- All file paths and uncovered line ranges (for all approved gaps)
+- The actual source code for each gap
+- Brief context about what each code section does
+- Any existing test files for those modules
+- The prioritized ranking from Phase 2 (so the agent structures its output in priority order)
 
-Agents will analyze and return structured test suite designs.
+The agent will analyze all gaps and return a structured report with one section per gap, ordered by priority.
 
-**Important**: Launch all agents in parallel in a single message using multiple Task tool calls with `model: "opus"`. This maximizes efficiency and ensures high-quality test suite designs.
+**Pattern**: This follows the "single scout agent" pattern used by `/refactor-audit` and `/typing-audit` - one Opus agent explores comprehensively and returns a complete structured report.
 
-## Phase 5: Compile Report
+## Phase 5: Format Report
 
-Combine agent outputs into a prioritized markdown report:
+The agent returns a complete structured report. Format it as a prioritized markdown document:
 
 ```markdown
 # Test Coverage Improvement Plan
@@ -292,7 +293,7 @@ Expected structure from pytest-cov:
 ## Guidelines
 
 - **Value over volume**: High-priority complex code > 100% coverage of simple code
-- **Parallel agents**: Launch all `test-suite-planner` agents in parallel for speed
+- **Single scout agent**: One `test-suite-planner` agent analyzes all approved gaps, avoiding context blow-up
 - **Actionable output**: Each suite should have clear purpose, cases, and strategy
 - **Realistic refactoring**: Don't suggest massive rewrites; focus on testability improvements
-- **User control**: Always get approval on scope before spawning agents
+- **User control**: Always get approval on scope before spawning the agent

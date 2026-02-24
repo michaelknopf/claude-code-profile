@@ -17,10 +17,20 @@ When planning test coverage improvements:
 
 ## Input
 
+**Single gap mode** (legacy):
 - **File path** and uncovered line ranges
 - **Source code** for the uncovered sections
 - **Context** about what the code does in the system
 - **Existing tests** (if any) to avoid duplication
+
+**Multi-gap mode** (used by `/coverage-audit`):
+- **Multiple file paths** with their uncovered line ranges
+- **Source code** for all uncovered sections
+- **Context** about what each code section does
+- **Priority ranking** from the orchestrator (so output is structured in priority order)
+- **Existing tests** (if any) to avoid duplication
+
+When analyzing multiple gaps, return a structured section for each gap in priority order.
 
 ## Behavior
 
@@ -49,27 +59,33 @@ When planning test coverage improvements:
 
 ## What This Agent Returns
 
-Structured test suite design:
+**For single gap**: Structured test suite design as shown below.
+
+**For multiple gaps** (from `/coverage-audit`): One section per gap in priority order:
 
 ```markdown
-## Purpose
+## Priority 1: src/api/payment.py
+
+**Coverage:** 45% (15 uncovered lines in process_payment)
+
+### Purpose
 Brief description of what this test suite validates and why it matters.
 
-## Test Cases
+### Test Cases
 
-### Happy Path
+**Happy Path:**
 1. Case description - validates X behavior
 2. Case description - validates Y behavior
 
-### Edge Cases
+**Edge Cases:**
 1. Case description - tests error handling for Z
 2. Case description - tests boundary condition
 
-### Error Scenarios
+**Error Scenarios:**
 1. Case description - validates error propagation
 2. Case description - validates rollback/cleanup
 
-## Mocking Strategy
+### Mocking Strategy
 
 **Mock:**
 - External API (because: network dependency, want predictable responses)
@@ -79,7 +95,7 @@ Brief description of what this test suite validates and why it matters.
 - Internal helper functions (because: part of unit under test)
 - Data structures (because: no side effects)
 
-## Refactoring Suggestions
+### Refactoring Suggestions
 
 **For testability:**
 - Extract `PaymentValidator` class to test validation logic independently
@@ -87,6 +103,17 @@ Brief description of what this test suite validates and why it matters.
 - Consider splitting `process_payment()` into smaller functions
 
 **Priority:** Medium - current structure is testable but could be cleaner
+
+---
+
+## Priority 2: src/services/inventory.py
+
+**Coverage:** 60% (22 uncovered lines in allocate_stock)
+
+### Purpose
+...
+
+[repeat structure for each gap]
 ```
 
 ## What This Agent Does NOT Do

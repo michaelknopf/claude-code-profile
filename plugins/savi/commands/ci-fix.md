@@ -90,10 +90,10 @@ Check the CI error output for patterns indicating type errors:
 
 **Select the appropriate diagnostician:**
 
-| Error Type | Agent | Why |
-|------------|-------|-----|
-| Type errors (mypy, pyright) | `type-fix-planner` | Applies type safety principles |
-| All other errors | `fix-diagnostician` | General-purpose debugging |
+| Error Type | Agent                    | Why |
+|------------|--------------------------|-----|
+| Type errors (mypy, pyright) | `savi:type-fix-planner`  | Applies type safety principles |
+| All other errors | `savi:fix-diagnostician` | General-purpose debugging |
 
 Spawn the selected agent (opus) with:
 - Target command: `gh run view <run-id> --log` (the workflow that failed)
