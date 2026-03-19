@@ -1,7 +1,7 @@
 ---
 description: Audit Python codebase for type safety opportunities (dicts vs typed structures, Any types)
 argument-hint: [directory] [--output=<file>] [--no-save]
-allowed-tools: Read, Glob, Grep, Bash(bd:*)
+allowed-tools: Read, Glob, Grep
 ---
 
 # /typing-audit — Python Type Safety Audit
@@ -113,6 +113,15 @@ Principles: ~/.claude/CLAUDE.md
 
 ---
 
+## Checklist
+
+- [ ] 1. src/api/handlers.py:42 - Convert Dict[str, Any] return to UserData model
+- [ ] 2. src/config.py:15-20 - Convert config dicts to Config dataclass
+
+(One item per finding, in priority order. Completed items will be checked off during implementation.)
+
+---
+
 ## Summary
 
 Found N type safety issues across M files.
@@ -167,6 +176,8 @@ Create a `UserData` pydantic model or dataclass with typed fields. This provides
 - Runtime validation (if using pydantic)
 - Clear API contract
 
+<!-- plan:skip is NOT appropriate here — converting a dict to a model and updating callers requires planning -->
+
 **Estimated effort:** Small (single function, straightforward conversion)
 
 **Dependencies:**
@@ -200,6 +211,8 @@ DEFAULT_CONFIG = {
 **Suggested approach:**
 Convert to a `Config` dataclass or pydantic model. Consider making it frozen/immutable.
 
+<!-- plan:skip -->
+
 **Estimated effort:** Medium (3 similar dicts to convert, need to update all usage sites)
 
 **Dependencies:**
@@ -220,27 +233,15 @@ Convert to a `Config` dataclass or pydantic model. Consider making it frozen/imm
 
 **📋 This report is complete. No code changes have been made.**
 
-To implement these recommendations:
+To implement these recommendations, run:
 
-1. **Review priorities** - Focus on High priority issues first
-2. **Copy handoff commands** - Each issue includes a ready-to-run `/refactor` command
-3. **Execute incrementally** - Don't try to fix everything at once
-   ```bash
-   # Example: Implement the first refactoring
-   /refactor src/api/handlers.py:42 "convert Dict[str, Any] return to UserData model"
-   ```
-4. **Fix breakage** - If refactoring breaks type checks or tests, iterate with:
-   ```bash
-   /fix just typecheck
-   /fix just test
-   ```
-5. **Verify improvements** - Re-run audit after changes:
-   ```bash
-   /typing-audit src/
-   ```
-6. **Track progress** - Compare new report with this one to measure improvements
+```bash
+/savi:epic-loop <path-to-this-report>
+```
 
-**Need help implementing?** Copy any "Handoff command" above into the chat.
+This will work through the checklist above sequentially, planning and executing each item.
+
+**Manual option:** Copy any "Handoff command" above into the chat to implement individually.
 ```
 
 ### Report Guidelines
@@ -255,107 +256,20 @@ To implement these recommendations:
 - **Effort estimates** - help user prioritize (Small/Medium/Large)
 - **Dependencies** - list tasks this blocks or is blocked by
 - **Handoff commands** - ready-to-run `/refactor` commands
+- **plan:skip marker** - Add `<!-- plan:skip -->` inside a finding's detail section when **all** of these are true:
+  - The fix is mechanical — no design decisions or trade-offs to evaluate
+  - The description already specifies exactly what to change (file, location, concrete transformation)
+  - The change affects 1-2 files at most
+  - Examples: add a type annotation, narrow an `Any` to a specific type, convert a single dict literal to a dataclass with known fields
 
-## Phase 6: Beads Integration (if available)
+  Do **not** add `plan:skip` when:
+  - The fix requires creating a new class/model that consumers then need to adopt (model creation may be simple, but consumer updates need planning)
+  - Multiple valid approaches exist (e.g., dataclass vs pydantic vs TypedDict)
+  - The description says "consider" or "evaluate" rather than prescribing a specific change
 
-Check if beads is initialized in the current repository:
+  When in doubt, omit the marker. An unnecessary planning phase wastes less than a failed unplanned execution.
 
-```bash
-bd info --json 2>/dev/null
-```
-
-If beads is available (command succeeds), integrate findings with beads issue tracker:
-
-### 6.1: Create Epic
-
-Create an epic to track the audit:
-
-```bash
-bd create "Typing Audit: <scope> (<YYYY-MM-DD-HH-MM>)" -t epic -p 2 --json
-```
-
-Extract the epic ID from the JSON response for use in subsequent steps.
-
-### 6.2: Create Subtasks
-
-For each finding in the report, create a subtask:
-
-```bash
-bd create "<short-title>" -t task -p <priority> --parent <epic-id> \
-  -d "**Principle:** <violated principle>
-
-**Location:** <file:lines>
-
-**Description:** <description>
-
-**Command:** /savi:refactor <file:lines> \"<description>\"" --json
-```
-
-**Priority mapping:**
-- High priority findings → `1`
-- Medium priority findings → `2`
-- Low priority findings → `3`
-
-**Planning label:** Add `-l plan:skip` when **all** of these are true:
-- The fix is mechanical — no design decisions or trade-offs to evaluate
-- The task description already specifies exactly what to change (file, location, concrete transformation)
-- The change affects 1-2 files at most
-- Examples: add a type annotation, narrow an `Any` to a specific type, convert a single dict literal to a dataclass with known fields
-
-Do **not** add `plan:skip` when:
-- The fix requires creating a new class/model that consumers then need to adopt (the model creation might be simple, but the consumer updates need planning)
-- Multiple valid approaches exist (e.g., dataclass vs pydantic vs TypedDict)
-- The description says "consider" or "evaluate" rather than prescribing a specific change
-
-When in doubt, omit the label. An unnecessary planning phase wastes less than a failed unplanned execution.
-
-**Short title format:** `<file> - <brief-description>`
-- Example: `handlers.py - Convert Dict to UserData model`
-- Keep titles under 60 characters
-
-Extract task IDs from JSON responses and map them to report issue numbers (e.g., issue #1 → task_id_1).
-
-### 6.3: Set Dependencies
-
-For each finding that has dependencies (from the Dependencies section in the report):
-
-```bash
-bd dep add <prerequisite-task-id> <dependent-task-id> --type blocks
-```
-
-**Important:** Only create blocking dependencies. Related tasks that don't block each other should remain independent.
-
-### 6.4: Sync to Remote
-
-Synchronize the issues to the remote repository:
-
-```bash
-bd sync
-```
-
-### 6.5: Report to User
-
-Display a summary of the beads integration:
-
-```
-✅ Created epic <epic-id> with N subtasks in beads.
-
-To execute these refactorings:
-1. Run `bd ready` to see unblocked tasks
-2. Run `/savi:next --loop` in a new session to process all ready tasks automatically
-3. Or pick individual tasks with `/savi:next` (processes one at a time)
-
-Track progress:
-- `bd stats` - View completion statistics
-- `bd blocked` - See tasks waiting on dependencies
-- `bd show <epic-id>` - View full epic details
-```
-
-### 6.6: Skip if Beads Not Available
-
-If `bd info` fails (beads not initialized), skip this phase silently and proceed to Phase 7. Do not display any error or warning about beads.
-
-## Phase 7: Output
+## Phase 6: Output
 
 **Default**: Save report to `docs/notes/reports/typing-audit-{YYYY-MM-DD-HH-MM}.md` AND display in conversation
 
@@ -364,7 +278,7 @@ If `bd info` fails (beads not initialized), skip this phase silently and proceed
 2. Generate timestamped filename: `typing-audit-{YYYY-MM-DD-HH-MM}.md`
 3. Write report to file
 4. Display report in conversation
-5. Show confirmation: "📄 Report saved to `docs/notes/reports/typing-audit-2026-01-11-14-30.md`"
+5. Show confirmation: "Report saved to `docs/notes/reports/typing-audit-2026-01-11-14-30.md`. To implement, run: `/savi:epic-loop docs/notes/reports/typing-audit-2026-01-11-14-30.md`"
 
 **If `--output=<file>` specified**:
 - Use custom path instead of default

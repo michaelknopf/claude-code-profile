@@ -1,6 +1,6 @@
 ---
 description: Review the current branch's PR diff and produce a prioritized audit report
-allowed-tools: Read, Glob, Grep, Write, Bash(bd:*)
+allowed-tools: Read, Glob, Grep, Write
 ---
 
 # PR Code Review
@@ -113,6 +113,33 @@ Review the reviewer agent's findings and apply the budget:
 
 Generate a structured markdown report with the user's approved scope.
 
+#### Checklist
+
+At the top of the report (after any header/summary), include a `## Checklist` section with one item per finding:
+
+```markdown
+## Checklist
+
+- [ ] 1. path/to/file.py:42 - Brief description
+- [ ] 2. path/to/file.py:78 - Brief description
+```
+
+**Title format:** `<number>. <file:line> - <brief description>` (match the finding heading exactly)
+
+**plan:skip marker:** Add `<!-- plan:skip -->` inside a finding's detail section when **all** of these are true:
+- The suggestion is fully prescriptive — it specifies exactly what code to change and how
+- The fix affects 1-2 files at most
+- No design decisions or trade-offs to evaluate
+- Examples: fix an off-by-one error, add a missing null check, rename a misleading variable, add input validation at a specific location
+
+Do **not** add `plan:skip` when:
+- The finding is a design issue (wrong abstraction, tight coupling, separation of concerns)
+- The fix requires understanding cross-file dependencies
+- The suggestion is directional rather than prescriptive (e.g., "restructure this handler")
+- Multiple valid fix approaches exist
+
+When in doubt, omit the marker. An unnecessary planning phase wastes less than a failed unplanned execution.
+
 #### Summary Table
 
 ```
@@ -141,7 +168,8 @@ Group findings by priority (Urgent → High → Medium → Low). For each findin
 ```markdown
 ### Urgent
 
-#### `path/to/file.py:42` — [Bug] Brief one-line description
+#### 1. `path/to/file.py:42` — [Bug] Brief one-line description
+<!-- plan:skip -->
 
 Detailed explanation of the issue, including why it's problematic and what scenarios would trigger it.
 
@@ -150,6 +178,8 @@ Detailed explanation of the issue, including why it's problematic and what scena
 ```
 
 **Suggestion:** Concrete, actionable fix with code example if applicable.
+
+**Dependencies:** (list finding numbers that must complete before this one, if any)
 
 ---
 ```
@@ -177,116 +207,7 @@ Include:
    - Show the summary table
    - List Urgent and High findings (brief)
    - Include the file path where the full report was saved
-
-### Phase 6: Beads Integration (optional)
-
-After saving the report, use `AskUserQuestion` to ask the user if they want to create beads issues for the findings:
-
-```
-Options:
-- Yes, create beads issues (Recommended)
-- No, skip
-```
-
-If the user declines, stop here.
-
-If the user accepts, proceed with beads integration:
-
-#### 6.1: Check Beads Availability
-
-```bash
-bd info --json 2>/dev/null
-```
-
-If beads is not initialized (command fails), inform the user and skip. Do not proceed with issue creation.
-
-#### 6.2: Create Epic
-
-Create an epic to track the review findings:
-
-```bash
-bd create "PR Review: <branch> (<YYYY-MM-DD-HH-MM>)" -t epic -p 2 \
-  -d "Review report: docs/notes/reports/review-pr-<branch>-<YYYY-MM-DD-HH-MM>.md" --json
-```
-
-Extract the epic ID from the JSON response for use in subsequent steps.
-
-#### 6.3: Create Subtasks
-
-For each finding in the report, create a subtask:
-
-```bash
-bd create "<short-title>" -t task -p <priority> --parent <epic-id> \
-  -d "**Category:** [<category>]
-
-**Location:** <file:lines>
-
-**Description:** <description>
-
-**Suggestion:** <suggestion>" --json
-```
-
-**Priority mapping:**
-- Urgent findings → `1`
-- High findings → `1`
-- Medium findings → `2`
-- Low findings → `3`
-
-**Planning label:** Add `-l plan:skip` when **all** of these are true:
-- The suggestion is fully prescriptive — it specifies exactly what code to change and how
-- The fix affects 1-2 files at most
-- No design decisions or trade-offs to evaluate
-- Examples: fix an off-by-one error, add a missing null check, rename a misleading variable, add input validation at a specific location
-
-Do **not** add `plan:skip` when:
-- The finding is a design issue (wrong abstraction, tight coupling, separation of concerns)
-- The fix requires understanding cross-file dependencies
-- The suggestion is directional rather than prescriptive (e.g., "restructure this handler")
-- Multiple valid fix approaches exist
-
-When in doubt, omit the label. An unnecessary planning phase wastes less than a failed unplanned execution.
-
-**Short title format:** `<file> - <brief-description>`
-- Example: `auth.py - Fix SQL injection in user lookup`
-- Keep titles under 60 characters
-
-Extract task IDs from JSON responses and map them to report finding numbers (e.g., finding #1 → task_id_1).
-
-#### 6.4: Set Dependencies
-
-For findings that should be tackled in a particular order (e.g., a design issue must be fixed before a dependent logic issue):
-
-```bash
-bd dep add <prerequisite-task-id> <dependent-task-id> --type blocks
-```
-
-**Important:** Only create blocking dependencies. Related tasks that don't block each other should remain independent.
-
-#### 6.5: Sync to Remote
-
-Synchronize the issues to the remote repository:
-
-```bash
-bd sync
-```
-
-#### 6.6: Report to User
-
-Display a summary of the beads integration:
-
-```
-Created epic <epic-id> with N subtasks in beads.
-
-To address these findings:
-1. Run `bd ready` to see unblocked tasks
-2. Run `/savi:next --loop` in a new session to process all ready tasks automatically
-3. Or pick individual tasks with `/savi:next` (processes one at a time)
-
-Track progress:
-- `bd stats` - View completion statistics
-- `bd blocked` - See tasks waiting on dependencies
-- `bd show <epic-id>` - View full epic details
-```
+   - Remind the user: to implement findings, run `/savi:epic-loop <report-path>`
 
 ## Example Output (Conversation)
 
@@ -316,6 +237,9 @@ Track progress:
 6. `src/models/user.py:1-15` — [Intent] Module docstring describes authentication but module handles profile management
 
 Full report saved to: `docs/notes/reports/review-pr-add-auth-2026-01-23-14-30.md`
+
+To implement these findings:
+  /savi:epic-loop docs/notes/reports/review-pr-add-auth-2026-01-23-14-30.md
 ```
 
 ## Related Commands

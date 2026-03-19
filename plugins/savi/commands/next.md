@@ -1,6 +1,6 @@
 ---
 description: Pick a ready task and start working on it
-allowed-tools: Bash(bd:*), Task(*)
+allowed-tools: Read, Edit, Glob, Task(*)
 accepts-args: true
 ---
 
@@ -18,26 +18,22 @@ Check if `--loop` flag is present in the args:
 
 ## Phase 1: Find Ready Work
 
-Run:
-```bash
-bd ready
-```
+Scan `docs/notes/reports/` for any markdown report files that contain an unchecked item (`- [ ]`) in a `## Checklist` section.
 
-If no tasks are ready, report that there's nothing to pick up and suggest checking `bd blocked` or creating a new issue.
+If no unchecked items exist across all reports, report that there's nothing to pick up and suggest running an audit command to generate a new report.
 
 ## Phase 2: Select a Task
 
-From the ready tasks, select the highest-priority one (P0 > P1 > P2 > P3 > P4). If multiple tasks share the same priority, use your judgment to pick the most impactful or logical next step (e.g., foundational work before dependent work, smaller unblocking tasks before larger ones).
+From all unchecked items across all reports, select the first one in the most recently modified report (reports are timestamped; newer = higher priority unless priority is embedded in the item). Apply judgment: skip items whose `**Dependencies:**` in the finding body lists items that are still unchecked.
 
-## Phase 3: Claim the Task
+## Phase 3: Get Task Details
 
-1. Run `bd show <issue-id>` to get full task details (description, context, acceptance criteria)
-2. Run `bd update <issue-id> --status in_progress` to claim it
+Read the report file. Find the finding section that corresponds to the selected checklist item (match by number and title). Parse the full description, suggestion, and context.
 
 ## Phase 4: Execute
 
-Treat the task description as your prompt. Work on it exactly as you would any user request:
-- Plan the work using TodoWrite
+Treat the finding details as your prompt. Work on it exactly as you would any user request:
+- Plan the work
 - Read relevant files, understand context
 - Implement the changes
 - Run tests/checks as appropriate
@@ -46,7 +42,7 @@ Treat the task description as your prompt. Work on it exactly as you would any u
 ## Phase 5: Complete
 
 When the task is done:
-1. Run `bd close <issue-id> --reason "<summary of what was done>"`
+1. Edit the report file — change `- [ ] <number>. <title>` to `- [x] <number>. <title>  *(completed: <summary of what was done>)*`
 2. Report what was accomplished
 
 ---
@@ -55,16 +51,16 @@ When the task is done:
 
 Process up to 10 tasks per invocation:
 
-1. **Find Ready Tasks**: Run `bd ready` to get all ready tasks
+1. **Find Ready Tasks**: Scan `docs/notes/reports/` for unchecked items across all report files
 2. **Check for Completion**: If no tasks are ready, report completion summary and exit
 3. **Check Limit**: If 10 tasks have been completed this invocation, report summary and exit (more may remain)
-4. **Select Task**: Choose the highest-priority task (P0 > P1 > P2 > P3 > P4)
-5. **Get Task Details**: Run `bd show <issue-id>` to get full task details
+4. **Select Task**: Choose the first unchecked item from the most recently modified report (skip items blocked by unchecked dependencies)
+5. **Get Task Details**: Read the corresponding finding section from the report
 6. **Spawn Sub-Agent**: Use the Task tool to spawn a sub-agent with:
-   - The full task description from `bd show`
+   - The full finding details from the report
    - Instructions to implement the task and report what was done
    - Do NOT include `/next` in the prompt (avoid recursive skill loading)
-7. **Close Task**: Run `bd close <issue-id> --reason "<summary from sub-agent>"`
+7. **Mark Complete**: Edit the report file — change `- [ ]` to `- [x]` and append completion note
 8. **Commit Changes**: Invoke `/savi:commit` skill to create an atomic commit for the completed task
 9. **Repeat**: Go back to step 1 (completing tasks may unblock others)
 

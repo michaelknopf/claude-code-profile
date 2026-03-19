@@ -138,6 +138,15 @@ Analyzed: 12 gaps, planned: 5 high-priority suites
 
 ---
 
+## Checklist
+
+- [ ] 1. src/api/payment.py - Write payment processing test suite
+- [ ] 2. src/services/inventory.py - Write inventory allocation test suite
+
+(One item per coverage gap, in priority order. Completed items will be checked off during implementation.)
+
+---
+
 ## Priority 1: src/api/payment.py
 
 **Coverage:** 45% (15 uncovered lines in process_payment)
@@ -202,18 +211,17 @@ Validates payment processing including authorization, capture, refunds, and erro
 **📋 This plan is complete. No tests have been written.**
 
 **Next Steps:**
-1. Review and adjust priorities based on business needs
-2. Implement refactoring suggestions for high-priority modules (if needed for testability)
-3. Write test suites in priority order using the designs above
-4. If tests fail, use `/fix just test` to iterate on failures
-5. Generate new coverage report:
-   ```bash
-   just coverage
-   ```
-6. Re-run this audit to verify improvement:
-   ```bash
-   /coverage-audit coverage.json
-   ```
+
+To implement these test suites, run:
+```bash
+/savi:epic-loop <path-to-this-report>
+```
+
+This will work through the checklist above sequentially, implementing each test suite.
+
+After implementing:
+1. Run `just coverage` to generate a new coverage report
+2. Re-run this audit to verify improvement: `/coverage-audit coverage.json`
 
 **The test suites above are designs, not implementations.** Use them as blueprints when writing actual test code.
 ```
@@ -227,7 +235,7 @@ Validates payment processing including authorization, capture, refunds, and erro
 2. Generate timestamped filename: `coverage-audit-{YYYY-MM-DD-HH-MM}.md`
 3. Write plan to file
 4. Display plan in conversation
-5. Show confirmation: "📄 Plan saved to `docs/notes/reports/coverage-audit-2026-01-11-14-30.md`"
+5. Show confirmation: "Plan saved to `docs/notes/reports/coverage-audit-2026-01-11-14-30.md`. To implement, run: `/savi:epic-loop docs/notes/reports/coverage-audit-2026-01-11-14-30.md`"
 
 **If `--output=<file>` specified**:
 - Use custom path instead of default
