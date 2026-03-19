@@ -1,6 +1,5 @@
 ---
 description: Commit changes with a contextual message
-argument-hint: "[commit message hint]"
 model: haiku
 ---
 
@@ -31,5 +30,4 @@ Based on the git state above, create a commit.
    - Summarizes the nature of the changes (new feature, bug fix, refactor, etc.)
    - Focuses on the "why" rather than the "what"
    - Follows the style of recent commits shown above
-3. If $ARGUMENTS is provided, use it as guidance for the commit message
-4. Create the commit with the message ending with the standard footer
+3. Create the commit with the message ending with the standard footer
