@@ -1,7 +1,7 @@
 ---
 description: Audit codebase for design principle violations and generate a report
 argument-hint: [directory] [--output=<file>] [--no-save]
-allowed-tools: Read, Glob, Grep, Bash(bd:*)
+allowed-tools: Read, Glob, Grep
 ---
 
 # /refactor-audit — Design Principle Compliance Audit
@@ -109,6 +109,15 @@ Principles: ~/.claude/CLAUDE.md
 
 ---
 
+## Checklist
+
+- [ ] 1. src/api/handlers.py:42-80 - Convert to RequestHandler class
+- [ ] 2. src/__init__.py:1-45 - Extract logic to proper modules
+
+(One item per finding, in priority order. Completed items will be checked off during implementation.)
+
+---
+
 ## Summary
 
 Found N refactoring opportunities across M files.
@@ -148,6 +157,8 @@ The functions `process_request()`, `validate_input()`, `transform_data()`, and `
 **Suggested approach:**
 Extract into a `RequestHandler` class with `_cache` and `_config` as instance attributes. Make functions instance methods.
 
+<!-- plan:skip is NOT appropriate here — restructuring to a class requires planning -->
+
 **Estimated effort:** Medium (4 functions, updates to call sites in 3 files)
 
 **Dependencies:**
@@ -171,6 +182,8 @@ The package `__init__.py` contains 45 lines of startup logic, configuration load
 **Suggested approach:**
 Move startup logic to `src/startup.py`, configuration to `src/config.py`, helpers to `src/utils.py`.
 
+<!-- plan:skip -->
+
 **Estimated effort:** Small (pure extraction, no logic changes needed)
 
 **Dependencies:**
@@ -191,27 +204,15 @@ Move startup logic to `src/startup.py`, configuration to `src/config.py`, helper
 
 **📋 This report is complete. No code changes have been made.**
 
-To implement these recommendations:
+To implement these recommendations, run:
 
-1. **Review priorities** - Focus on High priority issues first
-2. **Copy handoff commands** - Each issue includes a ready-to-run `/refactor` command
-3. **Execute incrementally** - Don't try to fix everything at once
-   ```bash
-   # Example: Implement the first refactoring
-   /refactor src/api/handlers.py:42-80 "convert to RequestHandler class"
-   ```
-4. **Fix breakage** - If refactoring breaks tests or type checks, iterate with:
-   ```bash
-   /fix just test
-   /fix just typecheck
-   ```
-5. **Verify improvements** - Re-run audit after changes:
-   ```bash
-   /refactor-audit src/
-   ```
-6. **Track progress** - Compare new report with this one to measure improvements
+```bash
+/savi:epic-loop <path-to-this-report>
+```
 
-**Need help implementing?** Copy any "Handoff command" above into the chat.
+This will work through the checklist above sequentially, planning and executing each item.
+
+**Manual option:** Copy any "Handoff command" above into the chat to implement individually.
 ```
 
 ### Report Guidelines
@@ -223,107 +224,20 @@ To implement these recommendations:
 - **Actionable suggestions** - specific approach, not vague "improve this"
 - **Effort estimates** - help user prioritize (Small/Medium/Large)
 - **Handoff commands** - ready-to-run `/refactor` commands
+- **plan:skip marker** - Add `<!-- plan:skip -->` inside a finding's detail section when **all** of these are true:
+  - The fix is mechanical — no design decisions or trade-offs to evaluate
+  - The description already specifies exactly what to change (file, location, concrete transformation)
+  - The change affects 1-2 files at most
+  - Examples: extract code from `__init__.py` to a named module, rename a variable, delete an unused import
 
-## Phase 6: Beads Integration (if available)
+  Do **not** add `plan:skip` when:
+  - The fix requires creating new abstractions (classes, modules) that consumers then need to adopt
+  - Multiple valid approaches exist (e.g., composition vs delegation vs strategy pattern)
+  - The description says "consider" or "evaluate" rather than prescribing a specific change
 
-Check if beads is initialized in the current repository:
+  When in doubt, omit the marker. An unnecessary planning phase wastes less than a failed unplanned execution.
 
-```bash
-bd info --json 2>/dev/null
-```
-
-If beads is available (command succeeds), integrate findings with beads issue tracker:
-
-### 6.1: Create Epic
-
-Create an epic to track the audit:
-
-```bash
-bd create "Refactor Audit: <scope> (<YYYY-MM-DD-HH-MM>)" -t epic -p 2 --json
-```
-
-Extract the epic ID from the JSON response for use in subsequent steps.
-
-### 6.2: Create Subtasks
-
-For each finding in the report, create a subtask:
-
-```bash
-bd create "<short-title>" -t task -p <priority> --parent <epic-id> \
-  -d "**Principle:** <violated principle>
-
-**Location:** <file:lines>
-
-**Description:** <description>
-
-**Command:** /savi:refactor <file:lines> \"<description>\"" --json
-```
-
-**Priority mapping:**
-- High priority findings → `1`
-- Medium priority findings → `2`
-- Low priority findings → `3`
-
-**Planning label:** Add `-l plan:skip` when **all** of these are true:
-- The fix is mechanical — no design decisions or trade-offs to evaluate
-- The task description already specifies exactly what to change (file, location, concrete transformation)
-- The change affects 1-2 files at most
-- Examples: extract code from `__init__.py` to a named module, rename a variable, delete an unused import
-
-Do **not** add `plan:skip` when:
-- The fix requires creating new abstractions (classes, modules) that consumers then need to adopt
-- Multiple valid approaches exist (e.g., composition vs delegation vs strategy pattern)
-- The description says "consider" or "evaluate" rather than prescribing a specific change
-
-When in doubt, omit the label. An unnecessary planning phase wastes less than a failed unplanned execution.
-
-**Short title format:** `<file> - <brief-description>`
-- Example: `handlers.py - Convert to RequestHandler class`
-- Keep titles under 60 characters
-
-Extract task IDs from JSON responses and map them to report issue numbers (e.g., issue #1 → task_id_1).
-
-### 6.3: Set Dependencies
-
-For each finding that has dependencies (from the Dependencies section in the report):
-
-```bash
-bd dep add <prerequisite-task-id> <dependent-task-id> --type blocks
-```
-
-**Important:** Only create blocking dependencies. Related tasks that don't block each other should remain independent.
-
-### 6.4: Sync to Remote
-
-Synchronize the issues to the remote repository:
-
-```bash
-bd sync
-```
-
-### 6.5: Report to User
-
-Display a summary of the beads integration:
-
-```
-✅ Created epic <epic-id> with N subtasks in beads.
-
-To execute these refactorings:
-1. Run `bd ready` to see unblocked tasks
-2. Run `/savi:next --loop` in a new session to process all ready tasks automatically
-3. Or pick individual tasks with `/savi:next` (processes one at a time)
-
-Track progress:
-- `bd stats` - View completion statistics
-- `bd blocked` - See tasks waiting on dependencies
-- `bd show <epic-id>` - View full epic details
-```
-
-### 6.6: Skip if Beads Not Available
-
-If `bd info` fails (beads not initialized), skip this phase silently and proceed to Phase 7. Do not display any error or warning about beads.
-
-## Phase 7: Output
+## Phase 6: Output
 
 **Default**: Save report to `docs/notes/reports/refactor-audit-{YYYY-MM-DD-HH-MM}.md` AND display in conversation
 
@@ -332,7 +246,7 @@ If `bd info` fails (beads not initialized), skip this phase silently and proceed
 2. Generate timestamped filename: `refactor-audit-{YYYY-MM-DD-HH-MM}.md`
 3. Write report to file
 4. Display report in conversation
-5. Show confirmation: "📄 Report saved to `docs/notes/reports/refactor-audit-2026-01-11-14-30.md`"
+5. Show confirmation: "Report saved to `docs/notes/reports/refactor-audit-2026-01-11-14-30.md`. To implement, run: `/savi:epic-loop docs/notes/reports/refactor-audit-2026-01-11-14-30.md`"
 
 **If `--output=<file>` specified**:
 - Use custom path instead of default
