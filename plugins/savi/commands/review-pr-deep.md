@@ -7,6 +7,14 @@ allowed-tools: Read, Glob, Grep, Write
 
 You are conducting an iterative, multi-pass code review of a pull request. A single-pass review naturally focuses on the most prominent issues (the "top layer"), which means deeper issues only become visible once the top layer is mentally resolved. This command runs multiple review passes, each building on the findings of prior passes, to discover the full set of issues without requiring fixes between iterations.
 
+## Prior Review Reports (Calibration Anchors)
+
+If the user provides file paths as arguments, these are prior deep review reports for the same PR. They establish the priority scale that this review must calibrate against, preventing priority inflation across successive reviews — where issues get promoted to Urgent/High simply because worse issues from a prior round have been fixed.
+
+**Arguments:** `$ARGUMENTS`
+
+!if [ -n "$ARGUMENTS" ]; then for f in $ARGUMENTS; do echo "=== Prior Report: $f ==="; cat "$f"; echo "=== End Prior Report ==="; done; else echo "(No prior reports provided — this is an uncalibrated first review.)"; fi
+
 ## Code Review Principles
 
 !`cat ${CLAUDE_PLUGIN_ROOT}/docs/code-review-principles.md`
@@ -157,6 +165,22 @@ After the loop completes, consolidate all findings from all passes:
    - **Medium**: Logic gaps under realistic edge conditions
    - **Low**: Improvements (naming, style, simplification, performance)
 
+   **If prior review reports were provided as calibration anchors:**
+
+   The prior reports define the priority scale for this PR. Use them to prevent priority
+   inflation — where issues get promoted simply because worse issues have been fixed.
+
+   Calibration protocol:
+   a. Extract the findings from each prior report with their assigned priorities.
+   b. For each finding in the current review, ask: "If this finding had appeared alongside
+      the prior report's findings, what priority would it have received?" Assign that priority.
+   c. If a finding from a prior report is still present (not fixed), retain its original priority.
+   d. New findings should be calibrated against the prior scale by severity, not by their rank
+      among current findings. A naming issue is still Low even if every Urgent/High issue is gone.
+   e. The goal is convergence: if all prior Urgent/High issues are fixed and no equally severe
+      issues are introduced, this review should show 0 Urgent/High findings. This is the desired
+      outcome — do not promote Medium/Low findings to fill the gap.
+
 4. **Validate each finding**: Read the relevant code yourself to confirm the finding is real. Drop anything you can't confirm.
 
 5. **Apply the budget**: Even across multiple passes, the budget philosophy applies to the consolidated set:
@@ -217,6 +241,7 @@ When in doubt, omit the marker. An unnecessary planning phase wastes less than a
 
 This report was generated using a multi-pass iterative review (N passes).
 Each pass built on prior findings to discover progressively deeper issues.
+[If prior reports were used: "Priority calibration was applied using N prior report(s) to maintain a consistent absolute scale across review iterations. Prior report(s): [list filenames]"]
 
 | Pass | New Findings | Emphasis |
 |------|-------------|----------|
@@ -297,6 +322,7 @@ Include:
    - Show the summary table
    - List Urgent and High findings (brief)
    - Include the file path where the full report was saved
+   - If prior reports were used for calibration, note: "Priority calibration applied against N prior report(s): [filenames]"
    - Remind the user: to implement findings, run `/savi:epic-loop <report-path>`
 
 ## Example Output (Conversation)
