@@ -181,6 +181,40 @@ gws drive files delete --params '{"fileId": "FILE_ID"}'
 
 ---
 
+## Google Docs
+
+The Drive API handles Google Docs. Local representation is **always markdown** by default.
+
+### Pull (Google Doc → local markdown)
+
+```bash
+gws drive files export \
+  --params '{"fileId": "DOC_ID", "mimeType": "text/markdown"}' \
+  --output ./doc.md
+```
+
+### Push — create a new Google Doc from markdown
+
+```bash
+gws drive files create \
+  --json '{"name": "My Document", "mimeType": "application/vnd.google-apps.document"}' \
+  --upload ./doc.md \
+  --upload-content-type text/markdown
+```
+
+### Push — update an existing Google Doc from markdown
+
+```bash
+gws drive files update \
+  --params '{"fileId": "DOC_ID"}' \
+  --upload ./doc.md \
+  --upload-content-type text/markdown
+```
+
+The `--upload-content-type text/markdown` flag tells Drive the source format; setting `mimeType: application/vnd.google-apps.document` in the body triggers conversion to Google Docs rich text format.
+
+---
+
 ## Calendar
 
 ### Helpers

@@ -35,6 +35,15 @@ gws gmail users messages list --params '{"userId": "me", "q": "is:unread"}'
 gws schema drive.files.list
 ```
 
+## Google Docs Convention
+
+**Always represent Google Docs as markdown locally** unless the user specifies otherwise.
+
+- **Pull** a doc: export with `mimeType: text/markdown`
+- **Push** a doc: upload with `--upload-content-type text/markdown` and `mimeType: application/vnd.google-apps.document`
+
+Drive handles markdown↔Google Docs conversion automatically. See `references/service-guide.md` for full recipes.
+
 ## Helper Commands (Preferred)
 
 Many services expose `+helper` commands with ergonomic named flags. **Always prefer
