@@ -195,11 +195,20 @@ gws drive files export \
 
 ### Push — create a new Google Doc from markdown
 
+New docs must always be set to pageless mode after creation.
+
 ```bash
-gws drive files create \
+# Step 1: Create the doc with markdown content
+DOC_ID=$(gws drive files create \
   --json '{"name": "My Document", "mimeType": "application/vnd.google-apps.document"}' \
   --upload ./doc.md \
-  --upload-content-type text/markdown
+  --upload-content-type text/markdown \
+  | jq -r '.id')
+
+# Step 2: Set pageless mode
+gws docs documents batchUpdate \
+  --params "{\"documentId\": \"$DOC_ID\"}" \
+  --json '{"requests": [{"updateDocumentStyle": {"documentStyle": {"documentFormat": {"documentMode": "PAGELESS"}}, "fields": "documentFormat"}}]}'
 ```
 
 ### Push — update an existing Google Doc from markdown
@@ -212,6 +221,26 @@ gws drive files update \
 ```
 
 The `--upload-content-type text/markdown` flag tells Drive the source format; setting `mimeType: application/vnd.google-apps.document` in the body triggers conversion to Google Docs rich text format.
+
+### Pull comments
+
+Fetch all comment threads with quoted context and replies. The `fields` parameter is required by the API.
+
+```bash
+gws drive comments list \
+  --params '{"fileId": "DOC_ID", "pageSize": 100, "fields": "comments(id,content,quotedFileContent,author(displayName),resolved,replies(content,author(displayName)))"}' \
+  --page-all
+```
+
+- `quotedFileContent` — the document text the comment is anchored to
+- `replies` — threaded responses to the comment
+- `resolved` — whether the thread has been resolved
+
+### Limitations: multi-tab docs
+
+Drive's markdown→rich text conversion only writes to the **first tab**. The Docs API can target other tabs via `tabId`, but only accepts plain text — there is no way to push markdown as formatted rich text into a non-first tab.
+
+**Do not attempt to create multi-tab docs when converting from markdown.** If you need multiple sections, create separate Google Docs instead.
 
 ---
 

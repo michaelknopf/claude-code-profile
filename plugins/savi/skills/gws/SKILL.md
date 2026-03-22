@@ -41,6 +41,8 @@ gws schema drive.files.list
 
 - **Pull** a doc: export with `mimeType: text/markdown`
 - **Push** a doc: upload with `--upload-content-type text/markdown` and `mimeType: application/vnd.google-apps.document`
+- **New docs**: always set pageless mode via a follow-up `docs documents batchUpdate` after creation
+- **Pull comments**: use `drive comments list` with `fields` to get comment threads with quoted context and replies
 
 Drive handles markdown↔Google Docs conversion automatically. See `references/service-guide.md` for full recipes.
 
