@@ -165,14 +165,14 @@ When in doubt, omit the marker.
 
 ## Phase 6: Save Report
 
-**Default**: Save to `docs/notes/reports/breakdown-{YYYY-MM-DD-HH-MM}.md` AND display in conversation.
+**Default**: Save to `docs/local/reports/breakdown-{YYYY-MM-DD-HH-MM}.md` AND display in conversation.
 
 Steps:
-1. Ensure `docs/notes/reports/` directory exists (create if needed)
+1. Ensure `docs/local/reports/` directory exists (create if needed)
 2. Generate timestamped filename: `breakdown-{YYYY-MM-DD-HH-MM}.md`
 3. Write report to file
 4. Display in conversation
-5. Show: "Report saved to `docs/notes/reports/breakdown-2026-01-11-14-30.md`. To implement, run: `/savi:epic-loop docs/notes/reports/breakdown-2026-01-11-14-30.md`"
+5. Show: "Report saved to `docs/local/reports/breakdown-2026-01-11-14-30.md`. To implement, run: `/savi:epic-loop docs/local/reports/breakdown-2026-01-11-14-30.md`"
 
 **If `--output=<file>`**: Use custom path instead.
 
@@ -183,6 +183,6 @@ Steps:
 ```
 /savi:breakdown "add a health check endpoint"
 /savi:breakdown "migrate authentication from sessions to JWTs"
-/savi:breakdown "add pagination to the user listing API" --output=docs/notes/reports/pagination.md
+/savi:breakdown "add pagination to the user listing API" --output=docs/local/reports/pagination.md
 /savi:breakdown "extract the email sending logic into a standalone service" --no-save
 ```

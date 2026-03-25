@@ -129,7 +129,7 @@ Options:
    - If project already has similar docs in `docs/`
    - Example: `src/api/` → `docs/api-architecture.md`
 
-**Important:** Never use `docs/notes/` (typically gitignored)
+**Important:** Never use `docs/local/` (typically gitignored)
 
 Choose a descriptive filename that reflects the content:
 - `README.md` for module overviews

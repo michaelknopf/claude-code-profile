@@ -308,12 +308,12 @@ Include:
 
 ### Phase 5: Output
 
-1. **Determine output path:** `docs/notes/reports/review-pr-deep-{BRANCH}-{YYYY-MM-DD-HH-MM}.md`
+1. **Determine output path:** `docs/local/reports/review-pr-deep-{BRANCH}-{YYYY-MM-DD-HH-MM}.md`
    - Extract branch name from context above
    - Use today's date and time
 
 2. **Save report:**
-   - Create `docs/notes/reports/` directory if it doesn't exist
+   - Create `docs/local/reports/` directory if it doesn't exist
    - Write the full report to the output file
    - Confirm the file was written
 
@@ -361,10 +361,10 @@ Include:
 5. `src/api/routes.py:15-40` — [Design] Route handler contains business logic that belongs in service layer [Pass 2]
 6. `src/models/user.py:1-15` — [Intent] Module docstring describes authentication but module handles profile management [Pass 1]
 
-Full report saved to: `docs/notes/reports/review-pr-deep-add-auth-2026-01-23-14-30.md`
+Full report saved to: `docs/local/reports/review-pr-deep-add-auth-2026-01-23-14-30.md`
 
 To implement these findings:
-  /savi:epic-loop docs/notes/reports/review-pr-deep-add-auth-2026-01-23-14-30.md
+  /savi:epic-loop docs/local/reports/review-pr-deep-add-auth-2026-01-23-14-30.md
 ```
 
 ## Related Commands

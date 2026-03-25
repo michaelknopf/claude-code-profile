@@ -18,7 +18,7 @@ Check if `--loop` flag is present in the args:
 
 ## Phase 1: Find Ready Work
 
-Scan `docs/notes/reports/` for any markdown report files that contain an unchecked item (`- [ ]`) in a `## Checklist` section.
+Scan `docs/local/reports/` for any markdown report files that contain an unchecked item (`- [ ]`) in a `## Checklist` section.
 
 If no unchecked items exist across all reports, report that there's nothing to pick up and suggest running an audit command to generate a new report.
 
@@ -51,7 +51,7 @@ When the task is done:
 
 Process up to 10 tasks per invocation:
 
-1. **Find Ready Tasks**: Scan `docs/notes/reports/` for unchecked items across all report files
+1. **Find Ready Tasks**: Scan `docs/local/reports/` for unchecked items across all report files
 2. **Check for Completion**: If no tasks are ready, report completion summary and exit
 3. **Check Limit**: If 10 tasks have been completed this invocation, report summary and exit (more may remain)
 4. **Select Task**: Choose the first unchecked item from the most recently modified report (skip items blocked by unchecked dependencies)

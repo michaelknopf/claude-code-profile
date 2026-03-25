@@ -23,7 +23,7 @@ allowed-tools: Read, Glob, Grep
 
 ## Output
 
-**Default behavior**: Saves report to `docs/notes/reports/refactor-audit-YYYY-MM-DD-HH-MM.md` AND displays in conversation.
+**Default behavior**: Saves report to `docs/local/reports/refactor-audit-YYYY-MM-DD-HH-MM.md` AND displays in conversation.
 
 **Options**:
 - `--output=<file>` - Save to custom location instead
@@ -239,14 +239,14 @@ This will work through the checklist above sequentially, planning and executing 
 
 ## Phase 6: Output
 
-**Default**: Save report to `docs/notes/reports/refactor-audit-{YYYY-MM-DD-HH-MM}.md` AND display in conversation
+**Default**: Save report to `docs/local/reports/refactor-audit-{YYYY-MM-DD-HH-MM}.md` AND display in conversation
 
 **Steps**:
-1. Ensure `docs/notes/reports/` directory exists (create if needed)
+1. Ensure `docs/local/reports/` directory exists (create if needed)
 2. Generate timestamped filename: `refactor-audit-{YYYY-MM-DD-HH-MM}.md`
 3. Write report to file
 4. Display report in conversation
-5. Show confirmation: "Report saved to `docs/notes/reports/refactor-audit-2026-01-11-14-30.md`. To implement, run: `/savi:epic-loop docs/notes/reports/refactor-audit-2026-01-11-14-30.md`"
+5. Show confirmation: "Report saved to `docs/local/reports/refactor-audit-2026-01-11-14-30.md`. To implement, run: `/savi:epic-loop docs/local/reports/refactor-audit-2026-01-11-14-30.md`"
 
 **If `--output=<file>` specified**:
 - Use custom path instead of default
@@ -268,7 +268,7 @@ This will work through the checklist above sequentially, planning and executing 
 
 ## Examples
 
-### Example 1: Full codebase audit (saves to docs/notes/reports/refactor-audit-YYYY-MM-DD-HH-MM.md)
+### Example 1: Full codebase audit (saves to docs/local/reports/refactor-audit-YYYY-MM-DD-HH-MM.md)
 ```
 /refactor-audit
 ```
